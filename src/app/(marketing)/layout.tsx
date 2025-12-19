@@ -20,12 +20,21 @@ export const metadata: Metadata = {
 			"Never miss a call. AI dispatcher for towing companies at a fraction of the cost.",
 		type: "website",
 		url: "https://tow.center",
+		images: [
+			{
+				url: "/opengraph-image.jpg",
+				width: 1200,
+				height: 630,
+				alt: "tow.center - AI Dispatcher for Towing Companies",
+			},
+		],
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: "tow.center - 24/7 AI Dispatch for Towing",
 		description:
 			"Stop missing $300 tows. AI dispatcher that answers calls, quotes prices, and texts you job details 24/7.",
+		images: ["/twitter-image.jpg"],
 	},
 };
 

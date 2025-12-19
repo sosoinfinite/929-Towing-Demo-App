@@ -23,9 +23,25 @@ export const metadata: Metadata = {
 		type: "website",
 		locale: "en_US",
 		siteName: "tow.center",
+		images: [
+			{
+				url: "/opengraph-image.jpg",
+				width: 1200,
+				height: 630,
+				alt: "tow.center - AI Dispatcher for Towing Companies",
+			},
+		],
 	},
 	twitter: {
 		card: "summary_large_image",
+		images: [
+			{
+				url: "/twitter-image.jpg",
+				width: 1200,
+				height: 630,
+				alt: "tow.center - AI Dispatcher for Towing Companies",
+			},
+		],
 	},
 	robots: {
 		index: true,

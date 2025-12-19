@@ -40,7 +40,7 @@ export default async function LandingPage() {
 			applicationCategory: "BusinessApplication",
 			operatingSystem: "Web",
 			url: "https://tow.center",
-			image: "https://tow.center/opengraph-image",
+			image: "https://tow.center/opengraph-image.jpg",
 			description:
 				"AI-powered dispatch service for towing companies. Automate calls, quotes, and driver assignment 24/7.",
 			offers: {
@@ -62,7 +62,7 @@ export default async function LandingPage() {
 			"@type": "Organization",
 			name: "tow.center",
 			url: "https://tow.center",
-			logo: "https://tow.center/opengraph-image",
+			logo: "https://tow.center/opengraph-image.jpg",
 			sameAs: [],
 			contactPoint: {
 				"@type": "ContactPoint",
