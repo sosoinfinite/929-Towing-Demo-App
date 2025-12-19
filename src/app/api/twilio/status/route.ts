@@ -3,51 +3,65 @@ import { getPool } from "@/lib/db";
 import { sendSMS } from "@/lib/twilio";
 
 // Twilio call status callback
+// ElevenLabs handles call routing natively - this logs completed calls and sends SMS
 export async function POST(request: NextRequest) {
 	const formData = await request.formData();
 	const callSid = formData.get("CallSid") as string;
 	const callStatus = formData.get("CallStatus") as string;
 	const callDuration = formData.get("CallDuration") as string;
 	const callerNumber = formData.get("From") as string;
+	const calledNumber = formData.get("To") as string;
 
-	const pool = getPool();
-
-	// Update call record
-	const callResult = await pool.query(
-		`UPDATE call
-		 SET status = $1,
-		     duration = $2
-		 WHERE twilio_call_sid = $3
-		 RETURNING company_id, ai_handled`,
-		[callStatus, callDuration ? Number.parseInt(callDuration, 10) : 0, callSid],
-	);
-
-	const call = callResult.rows[0];
-
-	if (!call) {
-		console.warn(`No call record found for CallSid: ${callSid}`);
+	// Only process completed calls
+	if (callStatus !== "completed") {
 		return NextResponse.json({ received: true });
 	}
 
-	// If call was completed and AI handled it, send SMS notification
-	if (callStatus === "completed" && call.ai_handled) {
-		// Get company phone number
-		const companyResult = await pool.query(
-			"SELECT name, phone FROM company WHERE id = $1",
-			[call.company_id],
-		);
+	const pool = getPool();
 
-		const company = companyResult.rows[0];
+	// Find company by Twilio phone number
+	const companyResult = await pool.query(
+		"SELECT id, name, phone, dispatch_active FROM company WHERE twilio_phone = $1",
+		[calledNumber],
+	);
 
-		if (company?.phone) {
-			const duration = callDuration
-				? `${Math.floor(Number.parseInt(callDuration, 10) / 60)}m ${Number.parseInt(callDuration, 10) % 60}s`
+	const company = companyResult.rows[0];
+
+	if (!company) {
+		console.warn(`No company found for Twilio number: ${calledNumber}`);
+		return NextResponse.json({ received: true });
+	}
+
+	const duration = callDuration ? Number.parseInt(callDuration, 10) : 0;
+
+	// Log the call
+	await pool.query(
+		`INSERT INTO call (id, company_id, twilio_call_sid, caller_number, status, duration, ai_handled)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7)
+		 ON CONFLICT (twilio_call_sid) DO UPDATE SET
+		   status = $5,
+		   duration = $6`,
+		[
+			crypto.randomUUID(),
+			company.id,
+			callSid,
+			callerNumber,
+			callStatus,
+			duration,
+			company.dispatch_active, // AI handled if dispatch was active
+		],
+	);
+
+	// Send SMS notification to company
+	if (company.phone && company.dispatch_active) {
+		const durationStr =
+			duration > 0
+				? `${Math.floor(duration / 60)}m ${duration % 60}s`
 				: "unknown";
 
-			const message = `[tow.center] New call received!\n\nFrom: ${callerNumber}\nDuration: ${duration}\n\nCheck your dashboard for details.`;
+		const message = `[tow.center] New call completed!\n\nFrom: ${callerNumber}\nDuration: ${durationStr}\n\nCheck your dashboard for details.`;
 
-			await sendSMS(company.phone, message);
-		}
+		await sendSMS(company.phone, message);
 	}
 
 	return NextResponse.json({ received: true });

@@ -1,4 +1,4 @@
-import { Twilio, twiml } from "twilio";
+import { Twilio } from "twilio";
 
 // Lazy initialization to avoid errors during build
 let _twilioClient: Twilio | null = null;
@@ -17,42 +17,6 @@ export function getTwilio(): Twilio {
 		_twilioClient = new Twilio(accountSid, authToken);
 	}
 	return _twilioClient;
-}
-
-// Generate TwiML for connecting to ElevenLabs
-export function generateElevenLabsStreamTwiML(agentId: string): string {
-	const response = new twiml.VoiceResponse();
-
-	// Connect to ElevenLabs via WebSocket streaming
-	const connect = response.connect();
-	connect.stream({
-		url: `wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${agentId}`,
-	});
-
-	return response.toString();
-}
-
-// Generate TwiML for voicemail
-export function generateVoicemailTwiML(companyName: string): string {
-	const response = new twiml.VoiceResponse();
-
-	response.say(
-		{ voice: "Polly.Matthew" },
-		`Thank you for calling ${companyName}. We are currently unavailable. Please leave a message after the beep and we will get back to you as soon as possible.`,
-	);
-
-	response.record({
-		maxLength: 120,
-		transcribe: true,
-		playBeep: true,
-	});
-
-	response.say(
-		{ voice: "Polly.Matthew" },
-		"We did not receive a recording. Goodbye.",
-	);
-
-	return response.toString();
 }
 
 // Send SMS notification
