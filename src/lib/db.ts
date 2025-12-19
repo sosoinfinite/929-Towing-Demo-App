@@ -1,8 +1,25 @@
 import { Pool } from "@neondatabase/serverless";
 
-export const pool = new Pool({
-	connectionString: process.env.DATABASE_URL,
-});
+// Lazy pool initialization to avoid errors during build
+let _pool: Pool | null = null;
+
+export function getPool(): Pool {
+	if (!_pool) {
+		if (!process.env.DATABASE_URL) {
+			throw new Error("DATABASE_URL environment variable is required");
+		}
+		_pool = new Pool({
+			connectionString: process.env.DATABASE_URL,
+		});
+	}
+	return _pool;
+}
+
+// For backwards compatibility
+export const pool = {
+	query: (...args: Parameters<Pool["query"]>) => getPool().query(...args),
+	connect: () => getPool().connect(),
+};
 
 // App-specific schema (run via Better Auth CLI + manual migration)
 // Better Auth creates: user, session, account, verification
