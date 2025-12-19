@@ -1,4 +1,12 @@
-import { Check, Clock, DollarSign, Phone, X, Zap } from "lucide-react";
+import {
+	ArrowRight,
+	Check,
+	Clock,
+	DollarSign,
+	Phone,
+	X,
+	Zap,
+} from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
