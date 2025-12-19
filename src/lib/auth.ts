@@ -1,6 +1,10 @@
+import { render } from "@react-email/components";
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
+import ResetPasswordEmail from "../../emails/reset-password";
+import VerificationEmail from "../../emails/verification";
 import { pool } from "./db";
+import { FROM_EMAIL, getResend } from "./email";
 
 export const auth = betterAuth({
 	database: pool,
@@ -8,6 +12,38 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		minPasswordLength: 8,
+		sendResetPassword: async ({ user, url }) => {
+			const html = await render(
+				ResetPasswordEmail({
+					name: user.name,
+					resetUrl: url,
+				}),
+			);
+			await getResend().emails.send({
+				from: FROM_EMAIL,
+				to: user.email,
+				subject: "Reset your tow.center password",
+				html,
+			});
+		},
+	},
+
+	emailVerification: {
+		sendVerificationEmail: async ({ user, url }) => {
+			const html = await render(
+				VerificationEmail({
+					name: user.name,
+					verificationUrl: url,
+				}),
+			);
+			await getResend().emails.send({
+				from: FROM_EMAIL,
+				to: user.email,
+				subject: "Verify your tow.center account",
+				html,
+			});
+		},
+		sendOnSignUp: true,
 	},
 
 	session: {

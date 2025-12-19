@@ -18,13 +18,13 @@ export function AIDemo({ agentId }: AIDemoProps) {
 
 	const conversation = useConversation({
 		onConnect: () => {
-			console.log("[TowAI] Connected to AI agent");
+			console.log("[tow.center] Connected to AI agent");
 		},
 		onDisconnect: () => {
-			console.log("[TowAI] Disconnected from AI agent");
+			console.log("[tow.center] Disconnected from AI agent");
 		},
 		onError: (error) => {
-			console.error("[TowAI] Error:", error);
+			console.error("[tow.center] Error:", error);
 		},
 	});
 
@@ -45,7 +45,7 @@ export function AIDemo({ agentId }: AIDemoProps) {
 
 	const handleStartCall = useCallback(async () => {
 		if (!agentId) {
-			console.error("[TowAI] No agent ID configured");
+			console.error("[tow.center] No agent ID configured");
 			return;
 		}
 
@@ -53,9 +53,12 @@ export function AIDemo({ agentId }: AIDemoProps) {
 		if (!permitted) return;
 
 		try {
-			await conversation.startSession({ agentId });
+			await conversation.startSession({
+				agentId,
+				connectionType: "webrtc",
+			});
 		} catch (error) {
-			console.error("[TowAI] Failed to start session:", error);
+			console.error("[tow.center] Failed to start session:", error);
 		}
 	}, [agentId, hasPermission, requestMicPermission, conversation]);
 
@@ -63,7 +66,7 @@ export function AIDemo({ agentId }: AIDemoProps) {
 		try {
 			await conversation.endSession();
 		} catch (error) {
-			console.error("[TowAI] Failed to end session:", error);
+			console.error("[tow.center] Failed to end session:", error);
 		}
 	}, [conversation]);
 
@@ -117,7 +120,7 @@ export function AIDemo({ agentId }: AIDemoProps) {
 										Incoming Job Request...
 									</h3>
 									<p className="text-sm text-muted-foreground">
-										Tap to hear how TowAI handles a customer
+										Tap to hear how tow.center handles a customer
 									</p>
 								</>
 							)}

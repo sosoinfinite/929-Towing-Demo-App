@@ -32,7 +32,7 @@ export function HeroSection({ agentId }: HeroSectionProps) {
 					</h1>
 
 					<p className="mt-6 text-base text-muted-foreground sm:text-lg lg:text-xl max-w-xl mx-auto lg:mx-0">
-						TowAI answers the phone instantly, quotes prices based on{" "}
+						tow.center answers the phone instantly, quotes prices based on{" "}
 						<em>your</em> rates, and texts you the job details. Never let a call
 						go to voicemail again.
 					</p>

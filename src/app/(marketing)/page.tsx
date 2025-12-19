@@ -35,7 +35,7 @@ export default async function LandingPage() {
 	const jsonLd = {
 		"@context": "https://schema.org",
 		"@type": "SoftwareApplication",
-		name: "TowAI",
+		name: "tow.center",
 		applicationCategory: "BusinessApplication",
 		operatingSystem: "Web",
 		offers: {
@@ -65,7 +65,7 @@ export default async function LandingPage() {
 					className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"
 				>
 					<Link href="/" className="text-xl font-bold text-foreground">
-						TowAI
+						tow.center
 					</Link>
 					<div className="hidden items-center gap-6 sm:flex">
 						<a
@@ -178,7 +178,8 @@ export default async function LandingPage() {
 							More Than Just An Answering Service
 						</h2>
 						<p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">
-							TowAI is a virtual dispatcher that actually understands towing.
+							tow.center is a virtual dispatcher that actually understands
+							towing.
 						</p>
 
 						<div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -237,7 +238,7 @@ export default async function LandingPage() {
 							id="comparison-heading"
 							className="text-center text-3xl font-bold text-foreground sm:text-4xl"
 						>
-							TowAI vs. Traditional Dispatch
+							tow.center vs. Traditional Dispatch
 						</h2>
 
 						<div className="mt-12 grid gap-6 md:grid-cols-2">
@@ -271,7 +272,7 @@ export default async function LandingPage() {
 								</CardContent>
 							</Card>
 
-							{/* TowAI Card */}
+							{/* tow.center Card */}
 							<Card className="relative border-primary bg-card shadow-xl ring-2 ring-primary">
 								<div className="absolute -top-4 left-0 right-0 flex justify-center">
 									<Badge className="bg-primary px-4 py-1 text-sm font-bold uppercase tracking-wider text-primary-foreground">
@@ -280,7 +281,7 @@ export default async function LandingPage() {
 								</div>
 								<CardHeader>
 									<CardTitle className="text-xl text-foreground">
-										TowAI Alpha
+										tow.center Alpha
 									</CardTitle>
 									<div className="flex items-baseline gap-2">
 										<span className="text-4xl font-extrabold text-foreground">
@@ -355,8 +356,8 @@ export default async function LandingPage() {
 										itemType="https://schema.org/Answer"
 									>
 										<p itemProp="text">
-											No. TowAI uses advanced voice AI that sounds natural and
-											conversational. Most customers don&apos;t realize
+											No. tow.center uses advanced voice AI that sounds natural
+											and conversational. Most customers don&apos;t realize
 											they&apos;re talking to an AI until the job is already
 											booked. We handle accents, background noise, and even
 											frustrated callers with ease.
@@ -382,10 +383,10 @@ export default async function LandingPage() {
 										itemType="https://schema.org/Answer"
 									>
 										<p itemProp="text">
-											Immediately after each call, TowAI sends an SMS to your
-											phone with the customer&apos;s name, location, vehicle
-											type, and issue. You can accept or decline with one tap.
-											No apps to check, no voicemails to listen to.
+											Immediately after each call, tow.center sends an SMS to
+											your phone with the customer&apos;s name, location,
+											vehicle type, and issue. You can accept or decline with
+											one tap. No apps to check, no voicemails to listen to.
 										</p>
 									</AccordionContent>
 								</AccordionItem>
@@ -408,7 +409,7 @@ export default async function LandingPage() {
 										itemType="https://schema.org/Answer"
 									>
 										<p itemProp="text">
-											TowAI is trained on thousands of hours of real
+											tow.center is trained on thousands of hours of real
 											conversations and understands a wide range of accents
 											better than most humans. If clarity is ever an issue, the
 											AI knows how to politely ask for clarification.
@@ -435,9 +436,9 @@ export default async function LandingPage() {
 									>
 										<p itemProp="text">
 											Yes. You control the greeting message, your service area,
-											and your pricing structure. TowAI learns your rates and
-											quotes accurately based on mileage, vehicle type, and time
-											of day.
+											and your pricing structure. tow.center learns your rates
+											and quotes accurately based on mileage, vehicle type, and
+											time of day.
 										</p>
 									</AccordionContent>
 								</AccordionItem>
@@ -502,7 +503,7 @@ export default async function LandingPage() {
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 					<div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
 						<div className="text-sm text-muted-foreground">
-							&copy; {new Date().getFullYear()} TowAI. All rights reserved.
+							&copy; {new Date().getFullYear()} tow.center. All rights reserved.
 						</div>
 						<div className="flex gap-6 text-sm text-muted-foreground">
 							<Link href="/privacy" className="hover:text-foreground">

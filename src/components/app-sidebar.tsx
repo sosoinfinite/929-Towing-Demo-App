@@ -67,7 +67,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
 						>
 							<a href="/dashboard">
 								<IconTruck className="!size-5" />
-								<span className="text-base font-semibold">TowAI</span>
+								<span className="text-base font-semibold">tow.center</span>
 							</a>
 						</SidebarMenuButton>
 					</SidebarMenuItem>

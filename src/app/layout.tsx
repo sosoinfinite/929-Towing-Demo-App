@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "TowAI - AI-Powered Towing Dispatch",
+	title: "tow.center - AI-Powered Towing Dispatch",
 	description: "Never miss a call. AI dispatcher for towing companies.",
 };
 

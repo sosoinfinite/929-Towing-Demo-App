@@ -1,4 +1,4 @@
-// TowAI brand colors - configurable per company
+// tow.center brand colors - configurable per company
 export const BRAND = {
 	yellow: "#FDDF2B",
 	red: "#C62828",

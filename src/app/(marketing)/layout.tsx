@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-	title: "TowAI - 24/7 AI Dispatch Service for Towing Companies",
+	title: "tow.center - 24/7 AI Dispatch Service for Towing Companies",
 	description:
-		"Stop missing calls and losing revenue. TowAI is the virtual dispatcher for tow trucks that quotes, schedules, and dispatches 24/7. Try it free today.",
+		"Stop missing calls and losing revenue. tow.center is the virtual dispatcher for tow trucks that quotes, schedules, and dispatches 24/7. Try it free today.",
 	keywords: [
 		"tow truck dispatch service",
 		"AI dispatch for towing",
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 		"24/7 tow truck dispatch",
 	],
 	openGraph: {
-		title: "TowAI - 24/7 AI Dispatch Service for Towing Companies",
+		title: "tow.center - 24/7 AI Dispatch Service for Towing Companies",
 		description:
 			"Never miss a call. AI dispatcher for towing companies at a fraction of the cost.",
 		type: "website",
