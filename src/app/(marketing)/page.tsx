@@ -3,6 +3,7 @@ import {
 	Check,
 	Clock,
 	DollarSign,
+	MessageSquare,
 	Phone,
 	X,
 	Zap,
@@ -126,6 +127,93 @@ export default async function LandingPage() {
 			<main className="flex-1">
 				{/* Hero Section with Live AI Demo */}
 				<HeroSection agentId={process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID} />
+
+				{/* Stats Bar */}
+				<section className="border-y border-border/50 bg-muted/30">
+					<div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+						<div className="grid grid-cols-1 gap-8 sm:grid-cols-3 text-center">
+							<div className="flex flex-col items-center justify-center gap-1">
+								<dt className="text-4xl font-bold tracking-tight text-foreground">
+									24/7
+								</dt>
+								<dd className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+									Availability
+								</dd>
+							</div>
+							<div className="flex flex-col items-center justify-center gap-1">
+								<dt className="text-4xl font-bold tracking-tight text-foreground">
+									&lt;2s
+								</dt>
+								<dd className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+									Response Time
+								</dd>
+							</div>
+							<div className="flex flex-col items-center justify-center gap-1">
+								<dt className="text-4xl font-bold tracking-tight text-foreground">
+									100%
+								</dt>
+								<dd className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+									Call Capture
+								</dd>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				{/* How it Works */}
+				<section className="py-20 sm:py-28 bg-background">
+					<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+						<div className="text-center mb-16">
+							<h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+								Your New AI Dispatcher
+							</h2>
+							<p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+								Handles the busy work so you can focus on driving and safety.
+							</p>
+						</div>
+
+						<div className="grid gap-12 md:grid-cols-3">
+							<div className="relative flex flex-col items-center text-center">
+								<div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+									<Phone className="h-8 w-8" />
+								</div>
+								<h3 className="text-xl font-bold text-foreground">
+									1. Answers Instantly
+								</h3>
+								<p className="mt-3 text-muted-foreground leading-relaxed">
+									Never send a customer to voicemail again. The AI answers
+									immediately, day or night, rain or shine.
+								</p>
+							</div>
+
+							<div className="relative flex flex-col items-center text-center">
+								<div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+									<DollarSign className="h-8 w-8" />
+								</div>
+								<h3 className="text-xl font-bold text-foreground">
+									2. Quotes Your Rates
+								</h3>
+								<p className="mt-3 text-muted-foreground leading-relaxed">
+									We upload your specific pricing (hook-up, mileage, storage).
+									The AI negotiates and secures the job.
+								</p>
+							</div>
+
+							<div className="relative flex flex-col items-center text-center">
+								<div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+									<MessageSquare className="h-8 w-8" />
+								</div>
+								<h3 className="text-xl font-bold text-foreground">
+									3. Dispatches to You
+								</h3>
+								<p className="mt-3 text-muted-foreground leading-relaxed">
+									Once the customer agrees, you get a text with location,
+									vehicle info, and price. Just drive.
+								</p>
+							</div>
+						</div>
+					</div>
+				</section>
 
 				{/* Pain Points Section */}
 				<section
