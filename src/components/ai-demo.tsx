@@ -67,63 +67,6 @@ export function AIDemo({ agentId }: AIDemoProps) {
 		}
 	}, [conversation]);
 
-	// No agent ID configured - show placeholder
-	if (!agentId) {
-		return (
-			<div className="flex flex-col">
-				{/* Status bar header */}
-				<div className="flex items-center justify-between rounded-t-xl bg-muted/50 px-4 py-3 border-b border-border">
-					<div className="flex items-center gap-2">
-						<span className="relative flex h-2.5 w-2.5">
-							<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75 motion-reduce:animate-none" />
-							<span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
-						</span>
-						<span className="text-xs font-medium text-muted-foreground">
-							AI Dispatcher Online
-						</span>
-					</div>
-					<Badge
-						variant="outline"
-						className="text-[10px] uppercase tracking-wider"
-					>
-						Demo
-					</Badge>
-				</div>
-
-				{/* Demo content */}
-				<div className="flex flex-col items-center justify-center gap-6 p-8">
-					<div className="text-center space-y-2">
-						<h3 className="text-xl font-bold tracking-tight text-foreground">
-							Incoming Job Request...
-						</h3>
-						<p className="text-sm text-muted-foreground">
-							Tap to hear how TowAI handles a customer
-						</p>
-					</div>
-
-					{/* Ringing phone button */}
-					<div className="relative">
-						{/* Ping animation */}
-						<div className="absolute -inset-4 animate-ping rounded-full bg-primary/20 opacity-75 motion-reduce:animate-none" />
-						<div className="absolute -inset-2 animate-pulse rounded-full bg-primary/10 motion-reduce:animate-none" />
-
-						<button
-							type="button"
-							className="relative z-10 flex h-20 w-20 items-center justify-center rounded-full border-4 border-background bg-primary shadow-xl transition-transform hover:scale-105 active:scale-95"
-							disabled
-						>
-							<Phone className="h-8 w-8 text-primary-foreground" />
-						</button>
-					</div>
-
-					<p className="text-xs text-muted-foreground">
-						Configure ELEVENLABS_AGENT_ID to enable
-					</p>
-				</div>
-			</div>
-		);
-	}
-
 	return (
 		<div className="flex flex-col">
 			{/* Status bar header */}
