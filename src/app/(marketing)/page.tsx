@@ -1,16 +1,9 @@
-import {
-	ArrowRight,
-	Check,
-	Clock,
-	DollarSign,
-	Phone,
-	X,
-	Zap,
-} from "lucide-react";
+import { Check, Clock, DollarSign, Phone, X, Zap } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import Script from "next/script";
+import { HeroSection } from "@/components/hero-section";
 import {
 	Accordion,
 	AccordionContent,
@@ -98,50 +91,8 @@ export default async function LandingPage() {
 			</header>
 
 			<main className="flex-1">
-				{/* Hero Section */}
-				<section
-					aria-labelledby="hero-heading"
-					className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 sm:py-32 lg:px-8"
-				>
-					<Badge variant="destructive" className="mb-6 px-4 py-1 text-sm">
-						Alpha Access: Limited Spots Available
-					</Badge>
-
-					<h1
-						id="hero-heading"
-						className="mx-auto max-w-4xl text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl"
-					>
-						Stop Losing <span className="text-primary">$300 Tows</span> While
-						You&apos;re Driving
-					</h1>
-
-					<p className="mx-auto mt-6 max-w-2xl text-xl text-muted-foreground">
-						The 24/7 AI Dispatch Service for towing companies. Answer every
-						call, quote prices instantly, and get job details texted to your
-						phone. No sick days. No missed calls. No attitude.
-					</p>
-
-					<div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-						<Button size="lg" className="h-14 px-8 text-lg font-bold" asChild>
-							<Link href="/sign-up">
-								Start Free Trial
-								<ArrowRight className="ml-2 h-5 w-5" />
-							</Link>
-						</Button>
-						<Button
-							variant="outline"
-							size="lg"
-							className="h-14 px-8 text-lg"
-							asChild
-						>
-							<a href="#demo">Watch Demo</a>
-						</Button>
-					</div>
-
-					<p className="mt-4 text-sm text-muted-foreground">
-						No credit card required. 3 months free, then $49/mo locked for life.
-					</p>
-				</section>
+				{/* Hero Section with Live AI Demo */}
+				<HeroSection agentId={process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID} />
 
 				{/* Pain Points Section */}
 				<section

@@ -85,14 +85,16 @@ src/
 │   ├── site-header.tsx       # Header with sidebar trigger
 │   ├── section-cards.tsx     # TowAI metrics cards
 │   ├── dispatch-toggle.tsx   # Main toggle component
-│   └── floating-icons.tsx    # $ and Z animations
+│   ├── floating-icons.tsx    # $ and Z animations
+│   ├── hero-section.tsx      # Landing page hero with AI demo
+│   └── ai-demo.tsx           # ElevenLabs conversational AI widget
 ├── lib/
 │   ├── auth.ts               # Better Auth server config
 │   ├── auth-client.ts        # Better Auth client
 │   ├── db.ts                 # Neon PostgreSQL + schema
 │   ├── brand.ts              # TowAI brand colors
 │   └── utils.ts              # cn() helper
-└── middleware.ts             # Route protection
+└── proxy.ts                  # Route protection (Next.js 16)
 ```
 
 ---
@@ -154,7 +156,7 @@ TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
 TWILIO_PHONE_NUMBER=
 ELEVENLABS_API_KEY=
-ELEVENLABS_AGENT_ID=
+NEXT_PUBLIC_ELEVENLABS_AGENT_ID=  # For landing page AI demo widget
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 NEXT_PUBLIC_BASE_URL=      # http://localhost:3000 for dev
