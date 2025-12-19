@@ -32,20 +32,45 @@ export default async function LandingPage() {
 	if (session) {
 		redirect("/dashboard");
 	}
-	const jsonLd = {
-		"@context": "https://schema.org",
-		"@type": "SoftwareApplication",
-		name: "tow.center",
-		applicationCategory: "BusinessApplication",
-		operatingSystem: "Web",
-		offers: {
-			"@type": "Offer",
-			price: "99.00",
-			priceCurrency: "USD",
+	const jsonLd = [
+		{
+			"@context": "https://schema.org",
+			"@type": "SoftwareApplication",
+			name: "tow.center",
+			applicationCategory: "BusinessApplication",
+			operatingSystem: "Web",
+			url: "https://tow.center",
+			image: "https://tow.center/og-image.jpg",
+			description:
+				"AI-powered dispatch service for towing companies. Automate calls, quotes, and driver assignment 24/7.",
+			offers: {
+				"@type": "Offer",
+				price: "49.00",
+				priceCurrency: "USD",
+				priceValidUntil: "2025-12-31",
+				availability: "https://schema.org/InStock",
+			},
+			featureList: [
+				"24/7 AI call answering",
+				"Instant price quotes",
+				"SMS job notifications",
+				"Real-time dispatch",
+			],
 		},
-		description:
-			"AI-powered dispatch service for towing companies. Automate calls, quotes, and driver assignment.",
-	};
+		{
+			"@context": "https://schema.org",
+			"@type": "Organization",
+			name: "tow.center",
+			url: "https://tow.center",
+			logo: "https://tow.center/og-image.jpg",
+			sameAs: [],
+			contactPoint: {
+				"@type": "ContactPoint",
+				contactType: "customer service",
+				availableLanguage: "English",
+			},
+		},
+	];
 
 	return (
 		<>
