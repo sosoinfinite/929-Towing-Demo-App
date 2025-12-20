@@ -8,7 +8,8 @@ import {
 	IconSend,
 	IconX,
 } from "@tabler/icons-react";
-import { useCallback, useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -79,6 +80,11 @@ interface Stats {
 	total: number;
 }
 
+interface LeadsResponse {
+	leads: Lead[];
+	stats: Stats;
+}
+
 const statusColors: Record<string, string> = {
 	new: "bg-blue-500/10 text-blue-600 border-blue-500/20",
 	contacted: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
@@ -87,101 +93,118 @@ const statusColors: Record<string, string> = {
 	rejected: "bg-red-500/10 text-red-600 border-red-500/20",
 };
 
+async function fetchLeads(): Promise<LeadsResponse> {
+	const res = await fetch("/api/admin/leads");
+	if (!res.ok) throw new Error("Failed to fetch leads");
+	return res.json();
+}
+
+async function fetchMessages(leadId: string): Promise<{ messages: Message[] }> {
+	const res = await fetch(`/api/admin/leads/${leadId}/messages`);
+	if (!res.ok) throw new Error("Failed to fetch messages");
+	return res.json();
+}
+
 export default function AdminLeadsPage() {
-	const [leads, setLeads] = useState<Lead[]>([]);
-	const [stats, setStats] = useState<Stats>({
+	const queryClient = useQueryClient();
+	const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+	const [notes, setNotes] = useState("");
+	const [replySubject, setReplySubject] = useState("");
+	const [replyMessage, setReplyMessage] = useState("");
+
+	// Fetch leads
+	const {
+		data,
+		isLoading: loading,
+		refetch,
+	} = useQuery({
+		queryKey: ["leads"],
+		queryFn: fetchLeads,
+	});
+
+	const leads = data?.leads ?? [];
+	const stats = data?.stats ?? {
 		new: 0,
 		contacted: 0,
 		qualified: 0,
 		converted: 0,
 		rejected: 0,
 		total: 0,
-	});
-	const [loading, setLoading] = useState(true);
-	const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-	const [messages, setMessages] = useState<Message[]>([]);
-	const [loadingMessages, setLoadingMessages] = useState(false);
-	const [notes, setNotes] = useState("");
-	const [replySubject, setReplySubject] = useState("");
-	const [replyMessage, setReplyMessage] = useState("");
-	const [sending, setSending] = useState(false);
-
-	const fetchLeads = useCallback(() => {
-		setLoading(true);
-		fetch("/api/admin/leads")
-			.then((res) => res.json())
-			.then((data) => {
-				setLeads(data.leads || []);
-				setStats(data.stats || stats);
-				setLoading(false);
-			})
-			.catch(() => setLoading(false));
-	}, [stats]);
-
-	const fetchMessages = async (leadId: string) => {
-		setLoadingMessages(true);
-		try {
-			const res = await fetch(`/api/admin/leads/${leadId}/messages`);
-			const data = await res.json();
-			setMessages(data.messages || []);
-		} catch {
-			setMessages([]);
-		}
-		setLoadingMessages(false);
 	};
 
-	useEffect(() => {
-		fetchLeads();
-	}, [fetchLeads]);
+	// Fetch messages for selected lead
+	const { data: messagesData, isLoading: loadingMessages } = useQuery({
+		queryKey: ["lead-messages", selectedLead?.id],
+		queryFn: () => fetchMessages(selectedLead!.id),
+		enabled: !!selectedLead,
+	});
+
+	const messages = messagesData?.messages ?? [];
+
+	// Update status mutation
+	const updateStatusMutation = useMutation({
+		mutationFn: async ({
+			leadId,
+			status,
+		}: { leadId: string; status: string }) => {
+			const res = await fetch("/api/admin/leads", {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ id: leadId, status }),
+			});
+			if (!res.ok) throw new Error("Failed to update status");
+			return res.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["leads"] });
+		},
+	});
+
+	// Save notes mutation
+	const saveNotesMutation = useMutation({
+		mutationFn: async ({ leadId, notes }: { leadId: string; notes: string }) => {
+			const res = await fetch("/api/admin/leads", {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ id: leadId, notes }),
+			});
+			if (!res.ok) throw new Error("Failed to save notes");
+			return res.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["leads"] });
+		},
+	});
+
+	// Send reply mutation
+	const sendReplyMutation = useMutation({
+		mutationFn: async ({
+			leadId,
+			subject,
+			message,
+		}: { leadId: string; subject: string; message: string }) => {
+			const res = await fetch(`/api/admin/leads/${leadId}/messages`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ subject, message }),
+			});
+			if (!res.ok) throw new Error("Failed to send reply");
+			return res.json();
+		},
+		onSuccess: () => {
+			setReplyMessage("");
+			queryClient.invalidateQueries({ queryKey: ["leads"] });
+			queryClient.invalidateQueries({
+				queryKey: ["lead-messages", selectedLead?.id],
+			});
+		},
+	});
 
 	const openLead = (lead: Lead) => {
 		setSelectedLead(lead);
 		setNotes(lead.notes || "");
 		setReplySubject(`Re: ${lead.subject || "Your inquiry"}`);
 		setReplyMessage("");
-		fetchMessages(lead.id);
-	};
-
-	const updateStatus = async (leadId: string, newStatus: string) => {
-		await fetch("/api/admin/leads", {
-			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ id: leadId, status: newStatus }),
-		});
-		fetchLeads();
-	};
-
-	const saveNotes = async () => {
-		if (!selectedLead) return;
-		await fetch("/api/admin/leads", {
-			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ id: selectedLead.id, notes }),
-		});
-		fetchLeads();
-	};
-
-	const sendReply = async () => {
-		if (!selectedLead || !replyMessage.trim()) return;
-		setSending(true);
-		try {
-			const res = await fetch(`/api/admin/leads/${selectedLead.id}/messages`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					subject: replySubject,
-					message: replyMessage,
-				}),
-			});
-			if (res.ok) {
-				setReplyMessage("");
-				fetchMessages(selectedLead.id);
-				fetchLeads(); // Refresh to update status
-			}
-		} catch (error) {
-			console.error("Error sending reply:", error);
-		}
-		setSending(false);
 	};
 
 	const formatDate = (dateString: string) => {
@@ -204,7 +227,7 @@ export default function AdminLeadsPage() {
 								Inbound emails to hookups@tow.center
 							</p>
 						</div>
-						<Button variant="outline" size="sm" onClick={fetchLeads}>
+						<Button variant="outline" size="sm" onClick={() => refetch()}>
 							<IconRefresh className="mr-2 h-4 w-4" />
 							Refresh
 						</Button>
@@ -329,14 +352,22 @@ export default function AdminLeadsPage() {
 														</DropdownMenuTrigger>
 														<DropdownMenuContent>
 															<DropdownMenuItem
-																onClick={() => updateStatus(lead.id, "new")}
+																onClick={() =>
+																	updateStatusMutation.mutate({
+																		leadId: lead.id,
+																		status: "new",
+																	})
+																}
 															>
 																<IconMail className="mr-2 h-4 w-4" />
 																New
 															</DropdownMenuItem>
 															<DropdownMenuItem
 																onClick={() =>
-																	updateStatus(lead.id, "contacted")
+																	updateStatusMutation.mutate({
+																		leadId: lead.id,
+																		status: "contacted",
+																	})
 																}
 															>
 																<IconMailOpened className="mr-2 h-4 w-4" />
@@ -344,7 +375,10 @@ export default function AdminLeadsPage() {
 															</DropdownMenuItem>
 															<DropdownMenuItem
 																onClick={() =>
-																	updateStatus(lead.id, "qualified")
+																	updateStatusMutation.mutate({
+																		leadId: lead.id,
+																		status: "qualified",
+																	})
 																}
 															>
 																<IconCheck className="mr-2 h-4 w-4" />
@@ -352,7 +386,10 @@ export default function AdminLeadsPage() {
 															</DropdownMenuItem>
 															<DropdownMenuItem
 																onClick={() =>
-																	updateStatus(lead.id, "converted")
+																	updateStatusMutation.mutate({
+																		leadId: lead.id,
+																		status: "converted",
+																	})
 																}
 															>
 																<IconCheck className="mr-2 h-4 w-4 text-green-600" />
@@ -360,7 +397,10 @@ export default function AdminLeadsPage() {
 															</DropdownMenuItem>
 															<DropdownMenuItem
 																onClick={() =>
-																	updateStatus(lead.id, "rejected")
+																	updateStatusMutation.mutate({
+																		leadId: lead.id,
+																		status: "rejected",
+																	})
 																}
 															>
 																<IconX className="mr-2 h-4 w-4 text-red-600" />
@@ -433,9 +473,7 @@ export default function AdminLeadsPage() {
 												Subject: {msg.subject}
 											</div>
 										)}
-										<div className="text-sm whitespace-pre-wrap">
-											{msg.body}
-										</div>
+										<div className="text-sm whitespace-pre-wrap">{msg.body}</div>
 									</div>
 								))
 							)}
@@ -463,16 +501,34 @@ export default function AdminLeadsPage() {
 										placeholder="Internal notes..."
 										className="text-sm w-64"
 									/>
-									<Button variant="outline" size="sm" onClick={saveNotes}>
-										Save Notes
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() =>
+											selectedLead &&
+											saveNotesMutation.mutate({
+												leadId: selectedLead.id,
+												notes,
+											})
+										}
+										disabled={saveNotesMutation.isPending}
+									>
+										{saveNotesMutation.isPending ? "Saving..." : "Save Notes"}
 									</Button>
 								</div>
 								<Button
-									onClick={sendReply}
-									disabled={sending || !replyMessage.trim()}
+									onClick={() =>
+										selectedLead &&
+										sendReplyMutation.mutate({
+											leadId: selectedLead.id,
+											subject: replySubject,
+											message: replyMessage,
+										})
+									}
+									disabled={sendReplyMutation.isPending || !replyMessage.trim()}
 								>
 									<IconSend className="mr-2 h-4 w-4" />
-									{sending ? "Sending..." : "Send Reply"}
+									{sendReplyMutation.isPending ? "Sending..." : "Send Reply"}
 								</Button>
 							</div>
 						</div>
