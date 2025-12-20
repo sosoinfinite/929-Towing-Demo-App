@@ -38,25 +38,14 @@ export function NavUser({
 	const { isMobile } = useSidebar();
 
 	const handleSignOut = async () => {
-		try {
-			await signOut({
-				fetchOptions: {
-					onSuccess: () => {
-						// Redirect with signedOut param to bypass proxy session check
-						window.location.href = "/sign-in?signedOut=true";
-					},
-					onError: (ctx) => {
-						console.error("Sign out error:", ctx.error);
-						// Force redirect anyway
-						window.location.href = "/sign-in?signedOut=true";
-					},
+		await signOut({
+			fetchOptions: {
+				onSuccess: () => {
+					// Force full page reload to clear all client state
+					window.location.href = "/sign-in";
 				},
-			});
-		} catch (error) {
-			console.error("Sign out failed:", error);
-			// Force redirect on any error
-			window.location.href = "/sign-in?signedOut=true";
-		}
+			},
+		});
 	};
 
 	// Get initials for avatar fallback

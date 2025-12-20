@@ -28,6 +28,13 @@ export default async function AdminSettingsPage() {
 			envVar: "DATABASE_URL",
 		},
 		{
+			name: "Vercel KV (Rate Limiting)",
+			configured: !!(
+				process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL
+			),
+			envVar: "KV_REST_API_URL",
+		},
+		{
 			name: "Resend (Email)",
 			configured: !!process.env.RESEND_API_KEY,
 			envVar: "RESEND_API_KEY",
