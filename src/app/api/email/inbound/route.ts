@@ -1,5 +1,5 @@
-import crypto from "node:crypto";
 import { type NextRequest, NextResponse } from "next/server";
+import { Webhook } from "svix";
 import { getPool } from "@/lib/db";
 import { parseDispatchEmail } from "@/lib/dispatch-agent";
 
@@ -22,51 +22,6 @@ interface ResendEmailReceivedEvent {
 	};
 }
 
-// Verify Resend webhook signature
-function verifyResendSignature(
-	payload: string,
-	signature: string | null,
-	secret: string,
-): boolean {
-	if (!signature) return false;
-
-	// Resend uses Svix for webhooks - signature format: "v1,timestamp,signature"
-	// For simplicity, we'll do a basic HMAC verification
-	// In production, consider using the Svix SDK
-	try {
-		const parts = signature.split(",");
-		if (parts.length < 2) return false;
-
-		const timestamp = parts.find((p) => p.startsWith("t="))?.slice(2);
-		const sig = parts.find((p) => p.startsWith("v1="))?.slice(3);
-
-		if (!timestamp || !sig) return false;
-
-		// Check timestamp is within 5 minutes
-		const timestampMs = Number.parseInt(timestamp, 10) * 1000;
-		const now = Date.now();
-		if (Math.abs(now - timestampMs) > 5 * 60 * 1000) {
-			console.warn("Webhook timestamp too old");
-			return false;
-		}
-
-		// Verify signature
-		const signedPayload = `${timestamp}.${payload}`;
-		const expectedSig = crypto
-			.createHmac("sha256", secret)
-			.update(signedPayload)
-			.digest("base64");
-
-		return crypto.timingSafeEqual(
-			Buffer.from(sig, "base64"),
-			Buffer.from(expectedSig, "base64"),
-		);
-	} catch (error) {
-		console.error("Signature verification error:", error);
-		return false;
-	}
-}
-
 // Get company by email address pattern
 async function getCompanyForEmail(toAddress: string): Promise<string | null> {
 	// For now, we route dispatch@ emails to a default company
@@ -86,35 +41,33 @@ async function getCompanyForEmail(toAddress: string): Promise<string | null> {
 }
 
 export async function POST(request: NextRequest) {
-	const webhookSecret = process.env.RESEND_SIGNING_SECRET;
+	const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
 
 	if (!webhookSecret) {
-		console.error("RESEND_SIGNING_SECRET not configured");
+		console.error("RESEND_WEBHOOK_SECRET not configured");
 		return NextResponse.json(
 			{ error: "Webhook not configured" },
 			{ status: 500 },
 		);
 	}
 
-	// Get raw body for signature verification
+	// Get raw body for signature verification (must be string, not parsed JSON)
 	const body = await request.text();
-	const signature = request.headers.get("svix-signature");
 
-	// Verify signature (relaxed for development - enable in production)
-	const isValid =
-		process.env.NODE_ENV === "development" ||
-		verifyResendSignature(body, signature, webhookSecret);
-
-	if (!isValid && process.env.NODE_ENV === "production") {
-		console.error("Invalid webhook signature");
-		return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-	}
+	// Verify signature using Svix
+	const svixHeaders = {
+		"svix-id": request.headers.get("svix-id") || "",
+		"svix-timestamp": request.headers.get("svix-timestamp") || "",
+		"svix-signature": request.headers.get("svix-signature") || "",
+	};
 
 	let event: ResendEmailReceivedEvent;
 	try {
-		event = JSON.parse(body);
-	} catch {
-		return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+		const wh = new Webhook(webhookSecret);
+		event = wh.verify(body, svixHeaders) as ResendEmailReceivedEvent;
+	} catch (error) {
+		console.error("Invalid webhook signature:", error);
+		return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
 	}
 
 	// Only process email.received events
