@@ -6,10 +6,10 @@ import {
 	IconSettings,
 	IconShield,
 	IconToggleRight,
-	IconTruck,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
+import { TowCenterIcon } from "@/components/tow-center-icon";
 import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -75,7 +75,7 @@ export function AppSidebar({ user, isAdmin, ...props }: AppSidebarProps) {
 							className="data-[slot=sidebar-menu-button]:!p-1.5"
 						>
 							<a href="/dashboard">
-								<IconTruck className="!size-5" />
+								<TowCenterIcon className="!size-5" />
 								<span className="text-base font-semibold">tow.center</span>
 							</a>
 						</SidebarMenuButton>
