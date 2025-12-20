@@ -1,11 +1,24 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AIDemo } from "./ai-demo";
+
+// Spring animation config for premium feel
+const springTransition = {
+	type: "spring" as const,
+	stiffness: 400,
+	damping: 17,
+};
+
+const buttonVariants = {
+	initial: { scale: 1 },
+	hover: { scale: 1.03, transition: springTransition },
+	tap: { scale: 0.97, transition: springTransition },
+};
 
 interface HeroSectionProps {
 	agentId?: string;
@@ -95,24 +108,47 @@ export function HeroSection({ agentId }: HeroSectionProps) {
 						variants={itemVariants}
 						className="mt-10 flex flex-col w-full sm:w-auto gap-4 sm:flex-row"
 					>
-						<Button
-							size="lg"
-							className="h-12 px-8 text-base font-semibold shadow-lg shadow-primary/20 sm:h-14 sm:px-10 sm:text-lg"
-							asChild
+						<motion.div
+							variants={buttonVariants}
+							initial="initial"
+							whileHover="hover"
+							whileTap="tap"
 						>
-							<Link href="/sign-up">
-								Start Free Trial
-								<ArrowRight className="ml-2 h-5 w-5" />
-							</Link>
-						</Button>
-						<Button
-							variant="outline"
-							size="lg"
-							className="h-12 px-8 text-base sm:h-14 sm:px-10 sm:text-lg"
-							asChild
+							<Button
+								size="lg"
+								className="group relative h-12 px-8 text-base font-semibold shadow-lg shadow-primary/25 sm:h-14 sm:px-10 sm:text-lg overflow-hidden"
+								asChild
+							>
+								<Link href="/sign-up">
+									<span className="relative z-10 flex items-center">
+										<Sparkles className="mr-2 h-5 w-5 opacity-80" />
+										Start Free Trial
+										<ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+									</span>
+									<motion.div
+										className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary"
+										initial={{ x: "-100%" }}
+										whileHover={{ x: "0%" }}
+										transition={{ duration: 0.3 }}
+									/>
+								</Link>
+							</Button>
+						</motion.div>
+						<motion.div
+							variants={buttonVariants}
+							initial="initial"
+							whileHover="hover"
+							whileTap="tap"
 						>
-							<a href="#pricing">See Pricing</a>
-						</Button>
+							<Button
+								variant="outline"
+								size="lg"
+								className="h-12 px-8 text-base sm:h-14 sm:px-10 sm:text-lg border-2 hover:bg-accent/50"
+								asChild
+							>
+								<a href="#pricing">See Pricing</a>
+							</Button>
+						</motion.div>
 					</motion.div>
 
 					<motion.div

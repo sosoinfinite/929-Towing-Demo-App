@@ -80,7 +80,12 @@ export async function PUT(request: NextRequest) {
 	const { name, phone, logo, serviceArea, greetingMessage } = body;
 
 	// Update company
-	if (name || phone !== undefined || logo !== undefined || serviceArea !== undefined) {
+	if (
+		name ||
+		phone !== undefined ||
+		logo !== undefined ||
+		serviceArea !== undefined
+	) {
 		await pool.query(
 			`UPDATE company
 			 SET name = COALESCE($1, name),

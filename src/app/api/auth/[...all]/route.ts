@@ -20,7 +20,11 @@ async function handleWithRateLimit(request: Request): Promise<Response> {
 	// Apply rate limiting based on the auth endpoint
 	// Only apply to POST requests (mutations)
 	if (request.method === "POST") {
-		let rateLimitResult: { success: boolean; remaining?: number; reset?: number } = { success: true };
+		let rateLimitResult: {
+			success: boolean;
+			remaining?: number;
+			reset?: number;
+		} = { success: true };
 
 		// Sign in with email/password
 		if (pathname.includes("/sign-in/email")) {
@@ -57,9 +61,7 @@ async function handleWithRateLimit(request: Request): Promise<Response> {
 			try {
 				const clonedRequest = request.clone();
 				const body = await clonedRequest.json();
-				const identifier = body.phoneNumber
-					? `${ip}:${body.phoneNumber}`
-					: ip;
+				const identifier = body.phoneNumber ? `${ip}:${body.phoneNumber}` : ip;
 				rateLimitResult = await checkRateLimit(otpSendLimiter, identifier);
 			} catch {
 				rateLimitResult = await checkRateLimit(otpSendLimiter, ip);
@@ -92,7 +94,7 @@ async function handleWithRateLimit(request: Request): Promise<Response> {
 }
 
 // Create Next.js handler with rate limiting
-const { GET: originalGET, POST: originalPOST } = toNextJsHandler(auth.handler);
+const { GET: originalGET } = toNextJsHandler(auth.handler);
 
 export async function GET(request: Request) {
 	return originalGET(request);

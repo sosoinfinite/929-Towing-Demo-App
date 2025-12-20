@@ -182,7 +182,9 @@ export async function POST(request: NextRequest) {
 			}
 		} else if (toAddress.toLowerCase().includes("hookups@")) {
 			// Sales lead email - create a lead record
-			console.log(`Sales lead email received from ${data.from}: ${data.subject}`);
+			console.log(
+				`Sales lead email received from ${data.from}: ${data.subject}`,
+			);
 
 			try {
 				const leadId = `lead_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;

@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 export function proxy(request: NextRequest) {
 	const sessionCookie = getSessionCookie(request);
-	const { pathname } = request.nextUrl;
+	const { pathname, searchParams } = request.nextUrl;
 
 	// Protected routes require authentication
 	if (pathname.startsWith("/dashboard")) {
@@ -13,8 +13,10 @@ export function proxy(request: NextRequest) {
 	}
 
 	// Redirect authenticated users away from auth pages
+	// Skip if user just signed out (cookie might not be cleared yet)
 	if (pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up")) {
-		if (sessionCookie) {
+		const justSignedOut = searchParams.get("signedOut") === "true";
+		if (sessionCookie && !justSignedOut) {
 			return NextResponse.redirect(new URL("/dashboard", request.url));
 		}
 	}

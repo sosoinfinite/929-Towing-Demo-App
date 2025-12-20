@@ -16,6 +16,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import Script from "next/script";
 import { HeroSection } from "@/components/hero-section";
+import { ROICalculator } from "@/components/roi-calculator";
+import { StickyMobileCTA } from "@/components/sticky-mobile-cta";
 import {
 	Accordion,
 	AccordionContent,
@@ -165,6 +167,9 @@ export default async function LandingPage() {
 						</div>
 					</div>
 				</section>
+
+				{/* ROI Calculator */}
+				<ROICalculator />
 
 				{/* How it Works */}
 				<section className="py-20 sm:py-28 bg-background">
@@ -729,7 +734,7 @@ export default async function LandingPage() {
 			</main>
 
 			{/* Footer */}
-			<footer className="border-t border-border py-12">
+			<footer className="border-t border-border py-12 pb-24 md:pb-12">
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 					<div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
 						<div className="text-sm text-muted-foreground">
@@ -749,6 +754,9 @@ export default async function LandingPage() {
 					</div>
 				</div>
 			</footer>
+
+			{/* Sticky Mobile CTA */}
+			<StickyMobileCTA />
 		</>
 	);
 }

@@ -3,11 +3,11 @@ import { type NextRequest, NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin";
 import { auth } from "@/lib/auth";
 import { getPool } from "@/lib/db";
-import { getResend, FROM_EMAIL } from "@/lib/email";
+import { FROM_EMAIL, getResend } from "@/lib/email";
 
 // Get messages for a lead
 export async function GET(
-	request: NextRequest,
+	_request: NextRequest,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
 	const session = await auth.api.getSession({

@@ -42,20 +42,20 @@ export function NavUser({
 			await signOut({
 				fetchOptions: {
 					onSuccess: () => {
-						// Hard redirect to clear all client state
-						window.location.href = "/";
+						// Redirect with signedOut param to bypass proxy session check
+						window.location.href = "/sign-in?signedOut=true";
 					},
 					onError: (ctx) => {
 						console.error("Sign out error:", ctx.error);
 						// Force redirect anyway
-						window.location.href = "/";
+						window.location.href = "/sign-in?signedOut=true";
 					},
 				},
 			});
 		} catch (error) {
 			console.error("Sign out failed:", error);
 			// Force redirect on any error
-			window.location.href = "/";
+			window.location.href = "/sign-in?signedOut=true";
 		}
 	};
 

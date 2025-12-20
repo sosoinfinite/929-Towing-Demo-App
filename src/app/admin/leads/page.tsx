@@ -8,7 +8,7 @@ import {
 	IconSend,
 	IconX,
 } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -106,7 +106,7 @@ export default function AdminLeadsPage() {
 	const [replyMessage, setReplyMessage] = useState("");
 	const [sending, setSending] = useState(false);
 
-	const fetchLeads = () => {
+	const fetchLeads = useCallback(() => {
 		setLoading(true);
 		fetch("/api/admin/leads")
 			.then((res) => res.json())
@@ -116,7 +116,7 @@ export default function AdminLeadsPage() {
 				setLoading(false);
 			})
 			.catch(() => setLoading(false));
-	};
+	}, [stats]);
 
 	const fetchMessages = async (leadId: string) => {
 		setLoadingMessages(true);
@@ -132,7 +132,7 @@ export default function AdminLeadsPage() {
 
 	useEffect(() => {
 		fetchLeads();
-	}, []);
+	}, [fetchLeads]);
 
 	const openLead = (lead: Lead) => {
 		setSelectedLead(lead);
@@ -165,17 +165,14 @@ export default function AdminLeadsPage() {
 		if (!selectedLead || !replyMessage.trim()) return;
 		setSending(true);
 		try {
-			const res = await fetch(
-				`/api/admin/leads/${selectedLead.id}/messages`,
-				{
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({
-						subject: replySubject,
-						message: replyMessage,
-					}),
-				},
-			);
+			const res = await fetch(`/api/admin/leads/${selectedLead.id}/messages`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					subject: replySubject,
+					message: replyMessage,
+				}),
+			});
 			if (res.ok) {
 				setReplyMessage("");
 				fetchMessages(selectedLead.id);
