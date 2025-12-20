@@ -79,8 +79,23 @@ CREATE TABLE IF NOT EXISTS agent_config (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Notification preferences (per-user settings)
+CREATE TABLE IF NOT EXISTS notification_preferences (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  email_new_calls BOOLEAN DEFAULT true,
+  email_missed_calls BOOLEAN DEFAULT true,
+  email_weekly_summary BOOLEAN DEFAULT false,
+  sms_new_calls BOOLEAN DEFAULT false,
+  sms_missed_calls BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id)
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_call_company_id ON call(company_id);
 CREATE INDEX IF NOT EXISTS idx_call_created_at ON call(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_subscription_company_id ON subscription(company_id);
+CREATE INDEX IF NOT EXISTS idx_notification_preferences_user_id ON notification_preferences(user_id);
 `;

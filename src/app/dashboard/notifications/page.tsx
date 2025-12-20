@@ -1,8 +1,13 @@
 "use client";
 
-import { IconBell, IconCheck, IconMail, IconPhone } from "@tabler/icons-react";
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import {
+	IconBell,
+	IconCheck,
+	IconLoader2,
+	IconMail,
+	IconPhone,
+} from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import {
 	Card,
 	CardContent,
@@ -13,31 +18,98 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
+interface NotificationSettings {
+	emailNewCalls: boolean;
+	emailMissedCalls: boolean;
+	emailWeeklySummary: boolean;
+	smsNewCalls: boolean;
+	smsMissedCalls: boolean;
+}
+
 export default function NotificationsPage() {
-	const [settings, setSettings] = useState({
+	const [settings, setSettings] = useState<NotificationSettings>({
 		emailNewCalls: true,
 		emailMissedCalls: true,
 		emailWeeklySummary: false,
 		smsNewCalls: false,
 		smsMissedCalls: true,
 	});
+	const [loading, setLoading] = useState(true);
+	const [saving, setSaving] = useState(false);
+	const [saved, setSaved] = useState(false);
 
-	const toggleSetting = (key: keyof typeof settings) => {
-		setSettings((prev) => ({
-			...prev,
-			[key]: !prev[key],
-		}));
+	useEffect(() => {
+		fetch("/api/notifications")
+			.then((res) => res.json())
+			.then((data) => {
+				setSettings(data);
+				setLoading(false);
+			})
+			.catch(() => setLoading(false));
+	}, []);
+
+	const updateSetting = async (key: keyof NotificationSettings) => {
+		const newSettings = {
+			...settings,
+			[key]: !settings[key],
+		};
+		setSettings(newSettings);
+		setSaving(true);
+		setSaved(false);
+
+		try {
+			await fetch("/api/notifications", {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(newSettings),
+			});
+			setSaved(true);
+			setTimeout(() => setSaved(false), 2000);
+		} catch (error) {
+			console.error("Failed to save preferences:", error);
+			// Revert on error
+			setSettings(settings);
+		} finally {
+			setSaving(false);
+		}
 	};
+
+	if (loading) {
+		return (
+			<div className="flex min-h-[400px] items-center justify-center">
+				<IconLoader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+			</div>
+		);
+	}
 
 	return (
 		<div className="@container/main flex flex-1 flex-col gap-2">
 			<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 				<div className="px-4 lg:px-6">
 					<div className="mb-6">
-						<h1 className="text-2xl font-bold">Notifications</h1>
-						<p className="text-muted-foreground">
-							Manage how you receive alerts and updates
-						</p>
+						<div className="flex items-center justify-between">
+							<div>
+								<h1 className="text-2xl font-bold">Notifications</h1>
+								<p className="text-muted-foreground">
+									Manage how you receive alerts and updates
+								</p>
+							</div>
+							{(saving || saved) && (
+								<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									{saving ? (
+										<>
+											<IconLoader2 className="h-4 w-4 animate-spin" />
+											Saving...
+										</>
+									) : (
+										<>
+											<IconCheck className="h-4 w-4 text-green-600" />
+											Saved
+										</>
+									)}
+								</div>
+							)}
+						</div>
 					</div>
 
 					<div className="space-y-6">
@@ -48,9 +120,7 @@ export default function NotificationsPage() {
 									<IconMail className="h-5 w-5 text-muted-foreground" />
 									<div>
 										<CardTitle>Email Notifications</CardTitle>
-										<CardDescription>
-											Receive updates via email
-										</CardDescription>
+										<CardDescription>Receive updates via email</CardDescription>
 									</div>
 								</div>
 							</CardHeader>
@@ -65,7 +135,7 @@ export default function NotificationsPage() {
 									<Switch
 										id="email-new-calls"
 										checked={settings.emailNewCalls}
-										onCheckedChange={() => toggleSetting("emailNewCalls")}
+										onCheckedChange={() => updateSetting("emailNewCalls")}
 									/>
 								</div>
 								<div className="flex items-center justify-between rounded-lg border p-4">
@@ -78,7 +148,7 @@ export default function NotificationsPage() {
 									<Switch
 										id="email-missed-calls"
 										checked={settings.emailMissedCalls}
-										onCheckedChange={() => toggleSetting("emailMissedCalls")}
+										onCheckedChange={() => updateSetting("emailMissedCalls")}
 									/>
 								</div>
 								<div className="flex items-center justify-between rounded-lg border p-4">
@@ -91,7 +161,7 @@ export default function NotificationsPage() {
 									<Switch
 										id="email-weekly"
 										checked={settings.emailWeeklySummary}
-										onCheckedChange={() => toggleSetting("emailWeeklySummary")}
+										onCheckedChange={() => updateSetting("emailWeeklySummary")}
 									/>
 								</div>
 							</CardContent>
@@ -119,7 +189,7 @@ export default function NotificationsPage() {
 									<Switch
 										id="sms-new-calls"
 										checked={settings.smsNewCalls}
-										onCheckedChange={() => toggleSetting("smsNewCalls")}
+										onCheckedChange={() => updateSetting("smsNewCalls")}
 									/>
 								</div>
 								<div className="flex items-center justify-between rounded-lg border p-4">
@@ -132,7 +202,7 @@ export default function NotificationsPage() {
 									<Switch
 										id="sms-missed-calls"
 										checked={settings.smsMissedCalls}
-										onCheckedChange={() => toggleSetting("smsMissedCalls")}
+										onCheckedChange={() => updateSetting("smsMissedCalls")}
 									/>
 								</div>
 							</CardContent>
@@ -159,11 +229,6 @@ export default function NotificationsPage() {
 								</div>
 							</CardContent>
 						</Card>
-
-						<p className="text-center text-xs text-muted-foreground">
-							Note: Notification preferences will be saved automatically in a
-							future update.
-						</p>
 					</div>
 				</div>
 			</div>

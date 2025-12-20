@@ -1,6 +1,12 @@
 "use client";
 
-import { IconCheck, IconLoader2, IconMail } from "@tabler/icons-react";
+import {
+	IconCheck,
+	IconKey,
+	IconLoader2,
+	IconMail,
+	IconX,
+} from "@tabler/icons-react";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +28,14 @@ export default function AccountPage() {
 	const [saving, setSaving] = useState(false);
 	const [saved, setSaved] = useState(false);
 
+	// Password change state
+	const [currentPassword, setCurrentPassword] = useState("");
+	const [newPassword, setNewPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
+	const [passwordSaving, setPasswordSaving] = useState(false);
+	const [passwordSaved, setPasswordSaved] = useState(false);
+	const [passwordError, setPasswordError] = useState("");
+
 	// Initialize name from session when it loads
 	if (session?.user?.name && !name && !saving) {
 		setName(session.user.name);
@@ -41,6 +55,45 @@ export default function AccountPage() {
 			setTimeout(() => setSaved(false), 2000);
 		} finally {
 			setSaving(false);
+		}
+	};
+
+	const handlePasswordChange = async () => {
+		setPasswordError("");
+
+		if (newPassword !== confirmPassword) {
+			setPasswordError("New passwords do not match");
+			return;
+		}
+
+		if (newPassword.length < 8) {
+			setPasswordError("Password must be at least 8 characters");
+			return;
+		}
+
+		setPasswordSaving(true);
+		setPasswordSaved(false);
+
+		try {
+			const result = await authClient.changePassword({
+				currentPassword,
+				newPassword,
+				revokeOtherSessions: true,
+			});
+
+			if (result.error) {
+				setPasswordError(result.error.message || "Failed to change password");
+			} else {
+				setPasswordSaved(true);
+				setCurrentPassword("");
+				setNewPassword("");
+				setConfirmPassword("");
+				setTimeout(() => setPasswordSaved(false), 2000);
+			}
+		} catch {
+			setPasswordError("An unexpected error occurred");
+		} finally {
+			setPasswordSaving(false);
 		}
 	};
 
@@ -147,6 +200,84 @@ export default function AccountPage() {
 										<Badge variant="secondary">Unverified</Badge>
 									)}
 								</div>
+							</CardContent>
+						</Card>
+
+						{/* Password Change */}
+						<Card>
+							<CardHeader>
+								<div className="flex items-center gap-2">
+									<IconKey className="h-5 w-5 text-muted-foreground" />
+									<div>
+										<CardTitle>Change Password</CardTitle>
+										<CardDescription>Update your account password</CardDescription>
+									</div>
+								</div>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								{passwordError && (
+									<div className="flex items-center gap-2 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+										<IconX className="h-4 w-4" />
+										{passwordError}
+									</div>
+								)}
+
+								<div className="space-y-2">
+									<Label htmlFor="current-password">Current Password</Label>
+									<Input
+										id="current-password"
+										type="password"
+										value={currentPassword}
+										onChange={(e) => setCurrentPassword(e.target.value)}
+										placeholder="Enter current password"
+									/>
+								</div>
+
+								<div className="space-y-2">
+									<Label htmlFor="new-password">New Password</Label>
+									<Input
+										id="new-password"
+										type="password"
+										value={newPassword}
+										onChange={(e) => setNewPassword(e.target.value)}
+										placeholder="At least 8 characters"
+									/>
+								</div>
+
+								<div className="space-y-2">
+									<Label htmlFor="confirm-password">Confirm New Password</Label>
+									<Input
+										id="confirm-password"
+										type="password"
+										value={confirmPassword}
+										onChange={(e) => setConfirmPassword(e.target.value)}
+										placeholder="Confirm new password"
+									/>
+								</div>
+
+								<Button
+									onClick={handlePasswordChange}
+									disabled={
+										passwordSaving ||
+										!currentPassword ||
+										!newPassword ||
+										!confirmPassword
+									}
+								>
+									{passwordSaving ? (
+										<>
+											<IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+											Changing...
+										</>
+									) : passwordSaved ? (
+										<>
+											<IconCheck className="mr-2 h-4 w-4" />
+											Password Changed
+										</>
+									) : (
+										"Change Password"
+									)}
+								</Button>
 							</CardContent>
 						</Card>
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { IconCheck, IconPhone, IconX } from "@tabler/icons-react";
+import { IconCheck, IconChevronRight, IconPhone, IconX } from "@tabler/icons-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -118,11 +119,12 @@ export default function CallsPage() {
 												<TableHead>Duration</TableHead>
 												<TableHead>Status</TableHead>
 												<TableHead>AI Handled</TableHead>
+												<TableHead className="w-[50px]" />
 											</TableRow>
 										</TableHeader>
 										<TableBody>
 											{calls.map((call) => (
-												<TableRow key={call.id}>
+												<TableRow key={call.id} className="cursor-pointer hover:bg-muted/50">
 													<TableCell>{formatDate(call.created_at)}</TableCell>
 													<TableCell className="font-mono">
 														{call.caller_number}
@@ -143,6 +145,13 @@ export default function CallsPage() {
 																No
 															</Badge>
 														)}
+													</TableCell>
+													<TableCell>
+														<Button asChild variant="ghost" size="icon">
+															<Link href={`/dashboard/calls/${call.id}`}>
+																<IconChevronRight className="h-4 w-4" />
+															</Link>
+														</Button>
 													</TableCell>
 												</TableRow>
 											))}
