@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { CompanyForm, type CompanyFormData } from "@/components/company-form";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -10,31 +11,33 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 
 export default function OnboardingPage() {
 	const router = useRouter();
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [formData, setFormData] = useState<CompanyFormData>({
+		name: "",
+		phone: "",
+		logo: "",
+		serviceArea: "",
+	});
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setLoading(true);
 		setError(null);
 
-		const formData = new FormData(e.currentTarget);
-		const name = formData.get("name") as string;
-		const phone = formData.get("phone") as string;
-		const logo = formData.get("logo") as string;
-		const serviceArea = formData.get("serviceArea") as string;
-
 		try {
 			const res = await fetch("/api/company", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ name, phone, logo, serviceArea }),
+				body: JSON.stringify({
+					name: formData.name,
+					phone: formData.phone,
+					logo: formData.logo,
+					serviceArea: formData.serviceArea,
+				}),
 			});
 
 			const data = await res.json();
@@ -52,7 +55,7 @@ export default function OnboardingPage() {
 	};
 
 	return (
-		<div className="flex min-h-screen items-center justify-center p-4 bg-muted/30">
+		<div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
 			<Card className="w-full max-w-lg">
 				<CardHeader className="text-center">
 					<CardTitle className="text-2xl">Set Up Your Company</CardTitle>
@@ -62,67 +65,23 @@ export default function OnboardingPage() {
 				</CardHeader>
 				<CardContent>
 					<form onSubmit={handleSubmit} className="space-y-6">
-						<div className="space-y-2">
-							<Label htmlFor="name">Company Name *</Label>
-							<Input
-								id="name"
-								name="name"
-								placeholder="e.g., 929 Towing"
-								required
-								disabled={loading}
-							/>
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="phone">Business Phone</Label>
-							<Input
-								id="phone"
-								name="phone"
-								type="tel"
-								placeholder="(555) 123-4567"
-								disabled={loading}
-							/>
-							<p className="text-sm text-muted-foreground">
-								This is where we'll send job notifications via SMS
-							</p>
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="logo">Company Logo URL</Label>
-							<Input
-								id="logo"
-								name="logo"
-								type="url"
-								placeholder="https://example.com/logo.png"
-								disabled={loading}
-							/>
-							<p className="text-sm text-muted-foreground">
-								Optional - Your company logo will appear in the dashboard
-							</p>
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="serviceArea">Service Area</Label>
-							<Textarea
-								id="serviceArea"
-								name="serviceArea"
-								placeholder="e.g., Dallas-Fort Worth metro area, 50 mile radius from downtown"
-								rows={3}
-								disabled={loading}
-							/>
-							<p className="text-sm text-muted-foreground">
-								Describe the areas you serve - the AI will use this to screen
-								calls
-							</p>
-						</div>
+						<CompanyForm
+							data={formData}
+							onChange={setFormData}
+							disabled={loading}
+						/>
 
 						{error && (
-							<div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">
+							<div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
 								{error}
 							</div>
 						)}
 
-						<Button type="submit" className="w-full" disabled={loading}>
+						<Button
+							type="submit"
+							className="w-full"
+							disabled={loading || !formData.name}
+						>
 							{loading ? "Setting up..." : "Start Using AI Dispatch"}
 						</Button>
 					</form>

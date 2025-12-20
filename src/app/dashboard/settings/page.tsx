@@ -3,11 +3,14 @@
 import {
 	IconCheck,
 	IconChevronRight,
+	IconCreditCard,
 	IconLoader2,
 	IconMail,
+	IconSettings,
 	IconShieldLock,
 	IconTrash,
 	IconUserPlus,
+	IconUsers,
 } from "@tabler/icons-react";
 import type {
 	Invitation,
@@ -16,16 +19,27 @@ import type {
 } from "better-auth/plugins/organization";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ImagePicker } from "@/components/image-picker";
+import { toast } from "sonner";
+import { CompanyForm, type CompanyFormData } from "@/components/company-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
+	CardFooter,
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -37,6 +51,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { authClient, useSession } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 interface Company {
 	id: string;
@@ -47,7 +62,6 @@ interface Company {
 	twilio_phone: string | null;
 }
 
-// Extended types for organization data with nested user info
 interface MemberWithUser extends Member {
 	user: {
 		id: string;
@@ -62,19 +76,26 @@ interface FullOrganization extends Organization {
 	invitations: Invitation[];
 }
 
+type SettingsTab = "general" | "team" | "billing";
+
 export default function SettingsPage() {
 	const { data: session } = useSession();
-	const [company, setCompany] = useState<Company | null>(null);
+	const [activeTab, setActiveTab] = useState<SettingsTab>("general");
 	const [loading, setLoading] = useState(true);
-	const [saving, setSaving] = useState(false);
-	const [saved, setSaved] = useState(false);
 
-	// Form state
-	const [name, setName] = useState("");
-	const [phone, setPhone] = useState("");
-	const [logo, setLogo] = useState("");
-	const [serviceArea, setServiceArea] = useState("");
+	// Company state
+	const [company, setCompany] = useState<Company | null>(null);
+	const [companyData, setCompanyData] = useState<CompanyFormData>({
+		name: "",
+		phone: "",
+		logo: "",
+		serviceArea: "",
+	});
+	const [savingCompany, setSavingCompany] = useState(false);
+
+	// AI Agent state
 	const [greetingMessage, setGreetingMessage] = useState("");
+	const [savingAgent, setSavingAgent] = useState(false);
 
 	// Team state
 	const [organization, setOrganization] = useState<FullOrganization | null>(
@@ -83,14 +104,19 @@ export default function SettingsPage() {
 	const [currentMember, setCurrentMember] = useState<MemberWithUser | null>(
 		null,
 	);
-	const [inviteEmail, setInviteEmail] = useState("");
-	const [inviteRole, setInviteRole] = useState<"admin" | "member">("member");
-	const [inviting, setInviting] = useState(false);
-	const [inviteError, setInviteError] = useState<string | null>(null);
 	const [teamLoading, setTeamLoading] = useState(true);
 	const [teamRefreshKey, setTeamRefreshKey] = useState(0);
 
+	// Invite dialog state
+	const [inviteOpen, setInviteOpen] = useState(false);
+	const [inviteEmail, setInviteEmail] = useState("");
+	const [inviteRole, setInviteRole] = useState<"admin" | "member">("member");
+	const [inviting, setInviting] = useState(false);
+
 	const refetchTeam = () => setTeamRefreshKey((k) => k + 1);
+
+	const isOwner = currentMember?.role === "owner";
+	const isAdmin = currentMember?.role === "admin" || isOwner;
 
 	// Fetch company settings
 	useEffect(() => {
@@ -99,10 +125,12 @@ export default function SettingsPage() {
 			.then((data) => {
 				if (data.company) {
 					setCompany(data.company);
-					setName(data.company.name || "");
-					setPhone(data.company.phone || "");
-					setLogo(data.company.logo || "");
-					setServiceArea(data.company.service_area || "");
+					setCompanyData({
+						name: data.company.name || "",
+						phone: data.company.phone || "",
+						logo: data.company.logo || "",
+						serviceArea: data.company.service_area || "",
+					});
 				}
 				if (data.agentConfig) {
 					setGreetingMessage(data.agentConfig.greeting_message || "");
@@ -112,16 +140,15 @@ export default function SettingsPage() {
 			.catch(() => setLoading(false));
 	}, []);
 
-	// Fetch organization/team data - depends on teamRefreshKey to trigger refetch
+	// Fetch team data
 	useEffect(() => {
-		void teamRefreshKey; // Explicitly consume to trigger refetch when changed
+		void teamRefreshKey;
 		const fetchOrganization = async () => {
 			try {
 				const [orgResult, memberResult] = await Promise.all([
 					authClient.organization.getFullOrganization(),
 					authClient.organization.getActiveMember(),
 				]);
-
 				if (orgResult.data) {
 					setOrganization(orgResult.data as FullOrganization);
 				}
@@ -129,36 +156,80 @@ export default function SettingsPage() {
 					setCurrentMember(memberResult.data as MemberWithUser);
 				}
 			} catch {
-				// No organization yet - that's fine
+				// No organization yet
 			} finally {
 				setTeamLoading(false);
 			}
 		};
-
 		fetchOrganization();
 	}, [teamRefreshKey]);
 
+	const handleSaveCompany = async () => {
+		setSavingCompany(true);
+		try {
+			const res = await fetch("/api/settings", {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					name: companyData.name,
+					phone: companyData.phone || null,
+					logo: companyData.logo || null,
+					serviceArea: companyData.serviceArea || null,
+				}),
+			});
+			if (res.ok) {
+				const data = await res.json();
+				setCompany(data.company);
+				toast.success("Company settings saved");
+			} else {
+				toast.error("Failed to save company settings");
+			}
+		} catch {
+			toast.error("Failed to save company settings");
+		} finally {
+			setSavingCompany(false);
+		}
+	};
+
+	const handleSaveAgent = async () => {
+		setSavingAgent(true);
+		try {
+			const res = await fetch("/api/settings", {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ greetingMessage }),
+			});
+			if (res.ok) {
+				toast.success("AI agent settings saved");
+			} else {
+				toast.error("Failed to save AI settings");
+			}
+		} catch {
+			toast.error("Failed to save AI settings");
+		} finally {
+			setSavingAgent(false);
+		}
+	};
+
 	const handleInvite = async () => {
 		if (!inviteEmail.trim()) return;
-
 		setInviting(true);
-		setInviteError(null);
-
 		try {
 			const result = await authClient.organization.inviteMember({
 				email: inviteEmail.trim(),
 				role: inviteRole,
 			});
-
 			if (result.error) {
-				setInviteError(result.error.message || "Failed to send invitation");
+				toast.error(result.error.message || "Failed to send invitation");
 			} else {
+				toast.success(`Invitation sent to ${inviteEmail}`);
 				setInviteEmail("");
 				setInviteRole("member");
+				setInviteOpen(false);
 				refetchTeam();
 			}
 		} catch {
-			setInviteError("Failed to send invitation");
+			toast.error("Failed to send invitation");
 		} finally {
 			setInviting(false);
 		}
@@ -170,64 +241,33 @@ export default function SettingsPage() {
 				memberId,
 				role: newRole,
 			});
+			toast.success("Role updated");
 			refetchTeam();
 		} catch {
-			// Handle error silently
+			toast.error("Failed to update role");
 		}
 	};
 
-	const handleRemoveMember = async (memberIdOrEmail: string) => {
+	const handleRemoveMember = async (memberEmail: string) => {
 		if (!confirm("Are you sure you want to remove this team member?")) return;
-
 		try {
 			await authClient.organization.removeMember({
-				memberIdOrEmail,
+				memberIdOrEmail: memberEmail,
 			});
+			toast.success("Member removed");
 			refetchTeam();
 		} catch {
-			// Handle error silently
+			toast.error("Failed to remove member");
 		}
 	};
 
 	const handleCancelInvitation = async (invitationId: string) => {
 		try {
-			await authClient.organization.cancelInvitation({
-				invitationId,
-			});
+			await authClient.organization.cancelInvitation({ invitationId });
+			toast.success("Invitation cancelled");
 			refetchTeam();
 		} catch {
-			// Handle error silently
-		}
-	};
-
-	const isOwner = currentMember?.role === "owner";
-	const isAdmin = currentMember?.role === "admin" || isOwner;
-
-	const handleSave = async () => {
-		setSaving(true);
-		setSaved(false);
-
-		try {
-			const res = await fetch("/api/settings", {
-				method: "PUT",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					name,
-					phone: phone || null,
-					logo: logo || null,
-					serviceArea: serviceArea || null,
-					greetingMessage,
-				}),
-			});
-
-			if (res.ok) {
-				const data = await res.json();
-				setCompany(data.company);
-				setSaved(true);
-				setTimeout(() => setSaved(false), 2000);
-			}
-		} finally {
-			setSaving(false);
+			toast.error("Failed to cancel invitation");
 		}
 	};
 
@@ -239,8 +279,14 @@ export default function SettingsPage() {
 		);
 	}
 
+	const navItems = [
+		{ id: "general" as const, label: "General", icon: IconSettings },
+		{ id: "team" as const, label: "Team", icon: IconUsers },
+		{ id: "billing" as const, label: "Billing", icon: IconCreditCard },
+	];
+
 	return (
-		<div className="@container/main flex flex-1 flex-col gap-2">
+		<div className="@container/main flex flex-1 flex-col">
 			<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 				<div className="px-4 lg:px-6">
 					<div className="mb-6">
@@ -250,226 +296,296 @@ export default function SettingsPage() {
 						</p>
 					</div>
 
-					<div className="space-y-6">
-						{/* Account & Security Link */}
-						<Link href="/dashboard/account">
-							<Card className="transition-colors hover:bg-muted/50">
-								<CardHeader className="flex flex-row items-center justify-between space-y-0">
-									<div className="flex items-center gap-4">
-										<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-											<IconShieldLock className="h-5 w-5 text-primary" />
-										</div>
-										<div>
-											<CardTitle className="text-base">
-												Account & Security
-											</CardTitle>
+					<div className="flex flex-col gap-6 lg:flex-row">
+						{/* Sidebar Navigation */}
+						<nav className="flex gap-1 lg:w-48 lg:flex-col lg:gap-1">
+							{navItems.map((item) => (
+								<button
+									key={item.id}
+									type="button"
+									onClick={() => setActiveTab(item.id)}
+									className={cn(
+										"flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+										activeTab === item.id
+											? "bg-muted text-foreground"
+											: "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+									)}
+								>
+									<item.icon className="h-4 w-4" />
+									{item.label}
+								</button>
+							))}
+
+							{/* Account & Security Link */}
+							<Link
+								href="/dashboard/account"
+								className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+							>
+								<span className="flex items-center gap-2">
+									<IconShieldLock className="h-4 w-4" />
+									Security
+								</span>
+								<IconChevronRight className="h-4 w-4" />
+							</Link>
+						</nav>
+
+						{/* Content Area */}
+						<div className="flex-1 space-y-6">
+							{activeTab === "general" && (
+								<>
+									{/* Company Card */}
+									<Card>
+										<CardHeader>
+											<CardTitle>Company</CardTitle>
 											<CardDescription>
-												Profile, password, passkeys, two-factor authentication
+												Your towing company information
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<CompanyForm
+												data={companyData}
+												onChange={setCompanyData}
+												showHelperText={false}
+											/>
+											{company?.twilio_phone && (
+												<div className="mt-4 rounded-lg border bg-muted/50 p-4">
+													<p className="text-sm font-medium">
+														AI Dispatch Number
+													</p>
+													<p className="mt-1 font-mono text-lg">
+														{company.twilio_phone}
+													</p>
+													<p className="mt-1 text-xs text-muted-foreground">
+														Customers call this number to reach your AI
+														dispatcher
+													</p>
+												</div>
+											)}
+										</CardContent>
+										<CardFooter className="justify-end border-t pt-4">
+											<Button
+												onClick={handleSaveCompany}
+												disabled={savingCompany}
+											>
+												{savingCompany ? (
+													<IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+												) : (
+													<IconCheck className="mr-2 h-4 w-4" />
+												)}
+												Save Company
+											</Button>
+										</CardFooter>
+									</Card>
+
+									{/* AI Agent Card */}
+									<Card>
+										<CardHeader>
+											<CardTitle>AI Agent</CardTitle>
+											<CardDescription>
+												Configure your AI dispatcher settings
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<div className="space-y-2">
+												<Label htmlFor="greeting">Greeting Message</Label>
+												<Textarea
+													id="greeting"
+													rows={3}
+													value={greetingMessage}
+													onChange={(e) => setGreetingMessage(e.target.value)}
+													placeholder="Hello, thank you for calling. How can I help you today?"
+												/>
+												<p className="text-xs text-muted-foreground">
+													This message will be spoken by the AI when answering
+													calls
+												</p>
+											</div>
+										</CardContent>
+										<CardFooter className="justify-end border-t pt-4">
+											<Button onClick={handleSaveAgent} disabled={savingAgent}>
+												{savingAgent ? (
+													<IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+												) : (
+													<IconCheck className="mr-2 h-4 w-4" />
+												)}
+												Save AI Settings
+											</Button>
+										</CardFooter>
+									</Card>
+								</>
+							)}
+
+							{activeTab === "team" && (
+								<Card>
+									<CardHeader className="flex flex-row items-center justify-between">
+										<div>
+											<CardTitle>Team Members</CardTitle>
+											<CardDescription>
+												Manage your team and their access
 											</CardDescription>
 										</div>
-									</div>
-									<IconChevronRight className="h-5 w-5 text-muted-foreground" />
-								</CardHeader>
-							</Card>
-						</Link>
-
-						{/* Company Settings */}
-						<Card>
-							<CardHeader>
-								<CardTitle>Company</CardTitle>
-								<CardDescription>
-									Your towing company information
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-4">
-								<div className="space-y-2">
-									<Label htmlFor="company-name">Company Name</Label>
-									<Input
-										id="company-name"
-										value={name}
-										onChange={(e) => setName(e.target.value)}
-										placeholder="Your Towing Company"
-									/>
-								</div>
-								<div className="space-y-2">
-									<Label htmlFor="phone">Phone Number</Label>
-									<Input
-										id="phone"
-										type="tel"
-										value={phone}
-										onChange={(e) => setPhone(e.target.value)}
-										placeholder="(555) 123-4567"
-									/>
-									<p className="text-xs text-muted-foreground">
-										This is where you&apos;ll receive SMS notifications about
-										new calls
-									</p>
-								</div>
-								<div className="space-y-2">
-									<Label>Company Logo</Label>
-									<ImagePicker value={logo} onChange={setLogo} />
-									<p className="text-xs text-muted-foreground">
-										Your logo will appear in the dashboard sidebar
-									</p>
-								</div>
-								<div className="space-y-2">
-									<Label htmlFor="service-area">Service Area</Label>
-									<Input
-										id="service-area"
-										value={serviceArea}
-										onChange={(e) => setServiceArea(e.target.value)}
-										placeholder="Albany, NY - Capital Region"
-									/>
-								</div>
-								{company?.twilio_phone && (
-									<div className="rounded-lg border bg-muted/50 p-4">
-										<p className="text-sm font-medium">
-											Your AI Dispatch Number
-										</p>
-										<p className="mt-1 font-mono text-lg">
-											{company.twilio_phone}
-										</p>
-										<p className="mt-1 text-xs text-muted-foreground">
-											Customers call this number to reach your AI dispatcher
-										</p>
-									</div>
-								)}
-							</CardContent>
-						</Card>
-
-						{/* AI Agent Settings */}
-						<Card>
-							<CardHeader>
-								<CardTitle>AI Agent</CardTitle>
-								<CardDescription>
-									Configure your AI dispatcher settings
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-4">
-								<div className="space-y-2">
-									<Label htmlFor="greeting">Greeting Message</Label>
-									<Textarea
-										id="greeting"
-										rows={3}
-										value={greetingMessage}
-										onChange={(e) => setGreetingMessage(e.target.value)}
-										placeholder="Hello, thank you for calling. How can I help you today?"
-									/>
-									<p className="text-xs text-muted-foreground">
-										This is what the AI will say when answering calls
-									</p>
-								</div>
-							</CardContent>
-						</Card>
-
-						{/* Team Management */}
-						<Card>
-							<CardHeader>
-								<CardTitle>Team</CardTitle>
-								<CardDescription>
-									Manage your team members and their access
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-6">
-								{teamLoading ? (
-									<div className="flex items-center justify-center py-8">
-										<IconLoader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-									</div>
-								) : !organization ? (
-									<div className="text-center py-8 text-muted-foreground">
-										<p>No organization yet.</p>
-										<p className="text-sm">
-											Complete onboarding to create your team.
-										</p>
-									</div>
-								) : (
-									<>
-										{/* Current Members */}
-										<div className="space-y-3">
-											<Label>Members</Label>
-											<div className="space-y-2">
-												{organization.members.map((member) => (
-													<div
-														key={member.id}
-														className="flex items-center justify-between rounded-lg border p-3"
-													>
-														<div className="flex items-center gap-3">
-															<div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium">
-																{member.user.name?.[0]?.toUpperCase() ||
-																	member.user.email[0]?.toUpperCase()}
-															</div>
-															<div>
-																<p className="text-sm font-medium">
-																	{member.user.name || member.user.email}
-																	{member.userId === session?.user?.id && (
-																		<span className="ml-2 text-xs text-muted-foreground">
-																			(you)
-																		</span>
-																	)}
-																</p>
-																<p className="text-xs text-muted-foreground">
-																	{member.user.email}
-																</p>
-															</div>
+										{isAdmin && (
+											<Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+												<DialogTrigger asChild>
+													<Button size="sm">
+														<IconUserPlus className="mr-2 h-4 w-4" />
+														Invite
+													</Button>
+												</DialogTrigger>
+												<DialogContent>
+													<DialogHeader>
+														<DialogTitle>Invite Team Member</DialogTitle>
+														<DialogDescription>
+															Send an email invitation to join your team
+														</DialogDescription>
+													</DialogHeader>
+													<div className="space-y-4 py-4">
+														<div className="space-y-2">
+															<Label htmlFor="invite-email">Email</Label>
+															<Input
+																id="invite-email"
+																type="email"
+																placeholder="colleague@example.com"
+																value={inviteEmail}
+																onChange={(e) => setInviteEmail(e.target.value)}
+															/>
 														</div>
-														<div className="flex items-center gap-2">
-															{isOwner &&
-															member.userId !== session?.user?.id ? (
-																<Select
-																	value={member.role}
-																	onValueChange={(value) =>
-																		handleUpdateRole(member.id, value)
-																	}
-																>
-																	<SelectTrigger className="w-[100px]">
-																		<SelectValue />
-																	</SelectTrigger>
-																	<SelectContent>
-																		<SelectItem value="owner">Owner</SelectItem>
-																		<SelectItem value="admin">Admin</SelectItem>
-																		<SelectItem value="member">
-																			Member
-																		</SelectItem>
-																	</SelectContent>
-																</Select>
-															) : (
-																<Badge
-																	variant={
-																		member.role === "owner"
-																			? "default"
-																			: "secondary"
-																	}
-																>
-																	{member.role}
-																</Badge>
-															)}
-															{isOwner &&
-																member.userId !== session?.user?.id && (
-																	<Button
-																		variant="ghost"
-																		size="icon"
-																		className="h-8 w-8 text-muted-foreground hover:text-destructive"
-																		onClick={() =>
-																			handleRemoveMember(member.user.email)
-																		}
-																	>
-																		<IconTrash className="h-4 w-4" />
-																	</Button>
-																)}
+														<div className="space-y-2">
+															<Label htmlFor="invite-role">Role</Label>
+															<Select
+																value={inviteRole}
+																onValueChange={(v) =>
+																	setInviteRole(v as "admin" | "member")
+																}
+															>
+																<SelectTrigger>
+																	<SelectValue />
+																</SelectTrigger>
+																<SelectContent>
+																	<SelectItem value="admin">Admin</SelectItem>
+																	<SelectItem value="member">Member</SelectItem>
+																</SelectContent>
+															</Select>
 														</div>
 													</div>
-												))}
+													<DialogFooter>
+														<Button
+															onClick={handleInvite}
+															disabled={inviting || !inviteEmail.trim()}
+														>
+															{inviting ? (
+																<IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+															) : (
+																<IconMail className="mr-2 h-4 w-4" />
+															)}
+															Send Invitation
+														</Button>
+													</DialogFooter>
+												</DialogContent>
+											</Dialog>
+										)}
+									</CardHeader>
+									<CardContent>
+										{teamLoading ? (
+											<div className="flex items-center justify-center py-8">
+												<IconLoader2 className="h-6 w-6 animate-spin text-muted-foreground" />
 											</div>
-										</div>
+										) : !organization ? (
+											<div className="py-8 text-center text-muted-foreground">
+												<p>No organization yet.</p>
+												<p className="text-sm">
+													Complete onboarding to create your team.
+												</p>
+											</div>
+										) : (
+											<div className="space-y-4">
+												{/* Members */}
+												<div className="space-y-2">
+													{organization.members.map((member) => (
+														<div
+															key={member.id}
+															className="flex items-center justify-between rounded-lg border p-3"
+														>
+															<div className="flex items-center gap-3">
+																<div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium">
+																	{member.user.name?.[0]?.toUpperCase() ||
+																		member.user.email[0]?.toUpperCase()}
+																</div>
+																<div>
+																	<p className="text-sm font-medium">
+																		{member.user.name || member.user.email}
+																		{member.userId === session?.user?.id && (
+																			<span className="ml-2 text-xs text-muted-foreground">
+																				(you)
+																			</span>
+																		)}
+																	</p>
+																	<p className="text-xs text-muted-foreground">
+																		{member.user.email}
+																	</p>
+																</div>
+															</div>
+															<div className="flex items-center gap-2">
+																{isOwner &&
+																member.userId !== session?.user?.id ? (
+																	<Select
+																		value={member.role}
+																		onValueChange={(value) =>
+																			handleUpdateRole(member.id, value)
+																		}
+																	>
+																		<SelectTrigger className="w-24">
+																			<SelectValue />
+																		</SelectTrigger>
+																		<SelectContent>
+																			<SelectItem value="owner">
+																				Owner
+																			</SelectItem>
+																			<SelectItem value="admin">
+																				Admin
+																			</SelectItem>
+																			<SelectItem value="member">
+																				Member
+																			</SelectItem>
+																		</SelectContent>
+																	</Select>
+																) : (
+																	<Badge
+																		variant={
+																			member.role === "owner"
+																				? "default"
+																				: "secondary"
+																		}
+																	>
+																		{member.role}
+																	</Badge>
+																)}
+																{isOwner &&
+																	member.userId !== session?.user?.id && (
+																		<Button
+																			variant="ghost"
+																			size="icon"
+																			className="h-8 w-8 text-muted-foreground hover:text-destructive"
+																			onClick={() =>
+																				handleRemoveMember(member.user.email)
+																			}
+																		>
+																			<IconTrash className="h-4 w-4" />
+																		</Button>
+																	)}
+															</div>
+														</div>
+													))}
+												</div>
 
-										{/* Pending Invitations */}
-										{organization.invitations &&
-											organization.invitations.filter(
-												(inv) => inv.status === "pending",
-											).length > 0 && (
-												<div className="space-y-3">
-													<Label>Pending Invitations</Label>
-													<div className="space-y-2">
+												{/* Pending Invitations */}
+												{organization.invitations?.filter(
+													(inv) => inv.status === "pending",
+												).length > 0 && (
+													<div className="space-y-2 border-t pt-4">
+														<p className="text-sm font-medium text-muted-foreground">
+															Pending Invitations
+														</p>
 														{organization.invitations
 															.filter((inv) => inv.status === "pending")
 															.map((invitation) => (
@@ -508,96 +624,40 @@ export default function SettingsPage() {
 																</div>
 															))}
 													</div>
-												</div>
-											)}
-
-										{/* Invite New Member */}
-										{isAdmin && (
-											<div className="space-y-3 border-t pt-4">
-												<Label>Invite Team Member</Label>
-												<div className="flex gap-2">
-													<Input
-														type="email"
-														placeholder="email@example.com"
-														value={inviteEmail}
-														onChange={(e) => setInviteEmail(e.target.value)}
-														className="flex-1"
-													/>
-													<Select
-														value={inviteRole}
-														onValueChange={(v) =>
-															setInviteRole(v as "admin" | "member")
-														}
-													>
-														<SelectTrigger className="w-[100px]">
-															<SelectValue />
-														</SelectTrigger>
-														<SelectContent>
-															<SelectItem value="admin">Admin</SelectItem>
-															<SelectItem value="member">Member</SelectItem>
-														</SelectContent>
-													</Select>
-													<Button
-														onClick={handleInvite}
-														disabled={inviting || !inviteEmail.trim()}
-													>
-														{inviting ? (
-															<IconLoader2 className="h-4 w-4 animate-spin" />
-														) : (
-															<IconUserPlus className="h-4 w-4" />
-														)}
-													</Button>
-												</div>
-												{inviteError && (
-													<p className="text-sm text-destructive">
-														{inviteError}
-													</p>
 												)}
-												<p className="text-xs text-muted-foreground">
-													An email invitation will be sent to join your team
-												</p>
 											</div>
 										)}
-									</>
-								)}
-							</CardContent>
-						</Card>
-
-						{/* Subscription */}
-						<Card>
-							<CardHeader>
-								<CardTitle>Subscription</CardTitle>
-								<CardDescription>Your current plan and billing</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<div className="flex items-center justify-between">
-									<div>
-										<p className="font-medium">Alpha Program</p>
-										<p className="text-sm text-muted-foreground">
-											Free for 3 months, then $49/mo locked for life
-										</p>
-									</div>
-									<Badge variant="default">Active</Badge>
-								</div>
-							</CardContent>
-						</Card>
-
-						{/* Save Button */}
-						<Button onClick={handleSave} disabled={saving} className="w-full">
-							{saving ? (
-								<>
-									<IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-									Saving...
-								</>
-							) : saved ? (
-								<>
-									<IconCheck className="mr-2 h-4 w-4" />
-									Saved
-								</>
-							) : (
-								"Save Changes"
+									</CardContent>
+								</Card>
 							)}
-						</Button>
+
+							{activeTab === "billing" && (
+								<Card>
+									<CardHeader>
+										<CardTitle>Subscription</CardTitle>
+										<CardDescription>
+											Your current plan and billing
+										</CardDescription>
+									</CardHeader>
+									<CardContent>
+										<div className="flex items-center justify-between">
+											<div>
+												<p className="font-medium">Alpha Program</p>
+												<p className="text-sm text-muted-foreground">
+													Free for 3 months, then $49/mo locked for life
+												</p>
+											</div>
+											<Badge variant="default">Active</Badge>
+										</div>
+									</CardContent>
+									<CardFooter className="border-t pt-4">
+										<Button variant="outline" asChild>
+											<Link href="/dashboard/billing">Manage Billing</Link>
+										</Button>
+									</CardFooter>
+								</Card>
+							)}
+						</div>
 					</div>
 				</div>
 			</div>
