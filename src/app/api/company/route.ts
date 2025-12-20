@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 	}
 
 	const body = await request.json();
-	const { name, phone, serviceArea } = body;
+	const { name, phone, logo, serviceArea } = body;
 
 	if (!name) {
 		return NextResponse.json(
@@ -74,9 +74,9 @@ export async function POST(request: NextRequest) {
 
 	// Create company
 	await pool.query(
-		`INSERT INTO company (id, name, phone, service_area, dispatch_active)
-		 VALUES ($1, $2, $3, $4, false)`,
-		[companyId, name, phone || null, serviceArea || null],
+		`INSERT INTO company (id, name, phone, logo, service_area, dispatch_active)
+		 VALUES ($1, $2, $3, $4, $5, false)`,
+		[companyId, name, phone || null, logo || null, serviceArea || null],
 	);
 
 	// Link user to company and set as owner

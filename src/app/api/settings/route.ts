@@ -77,18 +77,19 @@ export async function PUT(request: NextRequest) {
 	}
 
 	const body = await request.json();
-	const { name, phone, serviceArea, greetingMessage } = body;
+	const { name, phone, logo, serviceArea, greetingMessage } = body;
 
 	// Update company
-	if (name || phone !== undefined || serviceArea !== undefined) {
+	if (name || phone !== undefined || logo !== undefined || serviceArea !== undefined) {
 		await pool.query(
 			`UPDATE company
 			 SET name = COALESCE($1, name),
 			     phone = COALESCE($2, phone),
-			     service_area = COALESCE($3, service_area),
+			     logo = COALESCE($3, logo),
+			     service_area = COALESCE($4, service_area),
 			     updated_at = NOW()
-			 WHERE id = $4`,
-			[name || null, phone, serviceArea, companyId],
+			 WHERE id = $5`,
+			[name || null, phone, logo, serviceArea, companyId],
 		);
 	}
 

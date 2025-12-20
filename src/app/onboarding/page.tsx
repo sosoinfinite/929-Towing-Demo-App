@@ -27,13 +27,14 @@ export default function OnboardingPage() {
 		const formData = new FormData(e.currentTarget);
 		const name = formData.get("name") as string;
 		const phone = formData.get("phone") as string;
+		const logo = formData.get("logo") as string;
 		const serviceArea = formData.get("serviceArea") as string;
 
 		try {
 			const res = await fetch("/api/company", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ name, phone, serviceArea }),
+				body: JSON.stringify({ name, phone, logo, serviceArea }),
 			});
 
 			const data = await res.json();
@@ -83,6 +84,20 @@ export default function OnboardingPage() {
 							/>
 							<p className="text-sm text-muted-foreground">
 								This is where we'll send job notifications via SMS
+							</p>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="logo">Company Logo URL</Label>
+							<Input
+								id="logo"
+								name="logo"
+								type="url"
+								placeholder="https://example.com/logo.png"
+								disabled={loading}
+							/>
+							<p className="text-sm text-muted-foreground">
+								Optional - Your company logo will appear in the dashboard
 							</p>
 						</div>
 

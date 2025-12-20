@@ -31,12 +31,16 @@ CREATE TABLE IF NOT EXISTS company (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   phone TEXT,
+  logo TEXT,
   twilio_phone TEXT,
   dispatch_active BOOLEAN DEFAULT false,
   service_area TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Add logo column if not exists (for existing databases)
+ALTER TABLE company ADD COLUMN IF NOT EXISTS logo TEXT;
 
 -- Link users to companies (extends Better Auth user)
 ALTER TABLE "user" ADD COLUMN IF NOT EXISTS company_id TEXT REFERENCES company(id);

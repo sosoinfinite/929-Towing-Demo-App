@@ -38,6 +38,7 @@ interface Company {
 	id: string;
 	name: string;
 	phone: string | null;
+	logo: string | null;
 	service_area: string | null;
 	twilio_phone: string | null;
 }
@@ -67,6 +68,7 @@ export default function SettingsPage() {
 	// Form state
 	const [name, setName] = useState("");
 	const [phone, setPhone] = useState("");
+	const [logo, setLogo] = useState("");
 	const [serviceArea, setServiceArea] = useState("");
 	const [greetingMessage, setGreetingMessage] = useState("");
 
@@ -95,6 +97,7 @@ export default function SettingsPage() {
 					setCompany(data.company);
 					setName(data.company.name || "");
 					setPhone(data.company.phone || "");
+					setLogo(data.company.logo || "");
 					setServiceArea(data.company.service_area || "");
 				}
 				if (data.agentConfig) {
@@ -207,6 +210,7 @@ export default function SettingsPage() {
 				body: JSON.stringify({
 					name,
 					phone: phone || null,
+					logo: logo || null,
 					serviceArea: serviceArea || null,
 					greetingMessage,
 				}),
@@ -273,6 +277,19 @@ export default function SettingsPage() {
 									<p className="text-xs text-muted-foreground">
 										This is where you&apos;ll receive SMS notifications about
 										new calls
+									</p>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="logo">Company Logo URL</Label>
+									<Input
+										id="logo"
+										type="url"
+										value={logo}
+										onChange={(e) => setLogo(e.target.value)}
+										placeholder="https://example.com/logo.png"
+									/>
+									<p className="text-xs text-muted-foreground">
+										Your logo will appear in the dashboard sidebar
 									</p>
 								</div>
 								<div className="space-y-2">
