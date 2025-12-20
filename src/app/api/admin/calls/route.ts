@@ -26,7 +26,9 @@ export async function GET(request: NextRequest) {
 	const pool = getPool();
 
 	// Get total count
-	const countResult = await pool.query("SELECT COUNT(*)::int as count FROM call");
+	const countResult = await pool.query(
+		"SELECT COUNT(*)::int as count FROM call",
+	);
 	const total = countResult.rows[0].count;
 
 	// Get paginated calls with company info

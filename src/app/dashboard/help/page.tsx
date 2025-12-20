@@ -167,8 +167,8 @@ export default function HelpPage() {
 							</CardHeader>
 							<CardContent>
 								<Accordion type="single" collapsible className="w-full">
-									{faqs.map((faq, index) => (
-										<AccordionItem key={index} value={`item-${index}`}>
+									{faqs.map((faq) => (
+										<AccordionItem key={faq.question} value={faq.question}>
 											<AccordionTrigger className="text-left">
 												{faq.question}
 											</AccordionTrigger>

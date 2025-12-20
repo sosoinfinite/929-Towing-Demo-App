@@ -282,7 +282,9 @@ export default function BillingPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle>Payment History</CardTitle>
-								<CardDescription>Your recent invoices and payments</CardDescription>
+								<CardDescription>
+									Your recent invoices and payments
+								</CardDescription>
 							</CardHeader>
 							<CardContent>
 								{invoicesLoading ? (

@@ -103,7 +103,9 @@ export default function CallDetailPage() {
 				<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 					<div className="px-4 lg:px-6">
 						<div className="flex min-h-[300px] flex-col items-center justify-center">
-							<p className="text-muted-foreground">{error || "Call not found"}</p>
+							<p className="text-muted-foreground">
+								{error || "Call not found"}
+							</p>
 							<Button asChild variant="outline" className="mt-4">
 								<Link href="/dashboard/calls">
 									<IconArrowLeft className="mr-2 h-4 w-4" />
@@ -165,7 +167,9 @@ export default function CallDetailPage() {
 									</div>
 									<div>
 										<p className="text-sm text-muted-foreground">Duration</p>
-										<p className="font-medium">{formatDuration(call.duration)}</p>
+										<p className="font-medium">
+											{formatDuration(call.duration)}
+										</p>
 									</div>
 								</div>
 

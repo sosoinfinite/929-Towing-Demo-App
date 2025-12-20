@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
 	const url = new URL(request.url);
 	const callId = url.searchParams.get("callId");
 
-	const recordingUrl = formData.get("RecordingUrl") as string;
+	// Recording URL available via formData.get("RecordingUrl") if needed later
 	const recordingDuration = formData.get("RecordingDuration") as string;
 
 	if (!callId) {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 			duration = $1,
 			updated_at = NOW()
 		WHERE id = $2`,
-		[Number.parseInt(recordingDuration) || 0, callId],
+		[Number.parseInt(recordingDuration, 10) || 0, callId],
 	);
 
 	// Continue the call flow - hang up after recording

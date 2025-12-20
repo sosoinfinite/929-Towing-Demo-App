@@ -1,6 +1,11 @@
 "use client";
 
-import { IconCheck, IconChevronRight, IconPhone, IconX } from "@tabler/icons-react";
+import {
+	IconCheck,
+	IconChevronRight,
+	IconPhone,
+	IconX,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -124,7 +129,10 @@ export default function CallsPage() {
 										</TableHeader>
 										<TableBody>
 											{calls.map((call) => (
-												<TableRow key={call.id} className="cursor-pointer hover:bg-muted/50">
+												<TableRow
+													key={call.id}
+													className="cursor-pointer hover:bg-muted/50"
+												>
 													<TableCell>{formatDate(call.created_at)}</TableCell>
 													<TableCell className="font-mono">
 														{call.caller_number}

@@ -140,7 +140,9 @@ export default function NotificationsPage() {
 								</div>
 								<div className="flex items-center justify-between rounded-lg border p-4">
 									<div className="space-y-0.5">
-										<Label htmlFor="email-missed-calls">Missed call alerts</Label>
+										<Label htmlFor="email-missed-calls">
+											Missed call alerts
+										</Label>
 										<p className="text-sm text-muted-foreground">
 											Get notified when a call is missed or fails
 										</p>
@@ -174,7 +176,9 @@ export default function NotificationsPage() {
 									<IconPhone className="h-5 w-5 text-muted-foreground" />
 									<div>
 										<CardTitle>SMS Notifications</CardTitle>
-										<CardDescription>Receive alerts via text message</CardDescription>
+										<CardDescription>
+											Receive alerts via text message
+										</CardDescription>
 									</div>
 								</div>
 							</CardHeader>

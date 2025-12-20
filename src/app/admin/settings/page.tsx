@@ -132,7 +132,9 @@ export default async function AdminSettingsPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle>Environment</CardTitle>
-								<CardDescription>Current deployment environment</CardDescription>
+								<CardDescription>
+									Current deployment environment
+								</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-3">

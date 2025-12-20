@@ -139,11 +139,15 @@ export default function AccountPage() {
 								<div className="flex items-center gap-4">
 									<Avatar className="h-20 w-20">
 										<AvatarImage src={user?.image || undefined} />
-										<AvatarFallback className="text-lg">{initials}</AvatarFallback>
+										<AvatarFallback className="text-lg">
+											{initials}
+										</AvatarFallback>
 									</Avatar>
 									<div>
 										<p className="font-medium">{user?.name || "No name set"}</p>
-										<p className="text-sm text-muted-foreground">{user?.email}</p>
+										<p className="text-sm text-muted-foreground">
+											{user?.email}
+										</p>
 									</div>
 								</div>
 
@@ -158,7 +162,10 @@ export default function AccountPage() {
 										/>
 									</div>
 
-									<Button onClick={handleSave} disabled={saving || !name.trim()}>
+									<Button
+										onClick={handleSave}
+										disabled={saving || !name.trim()}
+									>
 										{saving ? (
 											<>
 												<IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -181,7 +188,9 @@ export default function AccountPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle>Email</CardTitle>
-								<CardDescription>Your email address and verification status</CardDescription>
+								<CardDescription>
+									Your email address and verification status
+								</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<div className="flex items-center justify-between rounded-lg border p-4">
@@ -189,7 +198,9 @@ export default function AccountPage() {
 										<IconMail className="h-5 w-5 text-muted-foreground" />
 										<div>
 											<p className="font-medium">{user?.email}</p>
-											<p className="text-sm text-muted-foreground">Primary email</p>
+											<p className="text-sm text-muted-foreground">
+												Primary email
+											</p>
 										</div>
 									</div>
 									{user?.emailVerified ? (
@@ -210,7 +221,9 @@ export default function AccountPage() {
 									<IconKey className="h-5 w-5 text-muted-foreground" />
 									<div>
 										<CardTitle>Change Password</CardTitle>
-										<CardDescription>Update your account password</CardDescription>
+										<CardDescription>
+											Update your account password
+										</CardDescription>
 									</div>
 								</div>
 							</CardHeader>
@@ -285,13 +298,17 @@ export default function AccountPage() {
 						<Card>
 							<CardHeader>
 								<CardTitle>Account Details</CardTitle>
-								<CardDescription>Account creation and session info</CardDescription>
+								<CardDescription>
+									Account creation and session info
+								</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-3">
 									<div className="flex items-center justify-between rounded-lg border p-3">
 										<p className="text-sm">Account ID</p>
-										<code className="text-xs text-muted-foreground">{user?.id}</code>
+										<code className="text-xs text-muted-foreground">
+											{user?.id}
+										</code>
 									</div>
 									<div className="flex items-center justify-between rounded-lg border p-3">
 										<p className="text-sm">Created</p>

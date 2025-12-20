@@ -105,8 +105,9 @@ export default function SettingsPage() {
 			.catch(() => setLoading(false));
 	}, []);
 
-	// Fetch organization/team data
+	// Fetch organization/team data - depends on teamRefreshKey to trigger refetch
 	useEffect(() => {
+		void teamRefreshKey; // Explicitly consume to trigger refetch when changed
 		const fetchOrganization = async () => {
 			try {
 				const [orgResult, memberResult] = await Promise.all([
