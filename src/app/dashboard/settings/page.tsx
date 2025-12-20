@@ -2,11 +2,14 @@
 
 import {
 	IconCheck,
+	IconChevronRight,
 	IconLoader2,
 	IconMail,
+	IconShieldLock,
 	IconTrash,
 	IconUserPlus,
 } from "@tabler/icons-react";
+import Link from "next/link";
 import type {
 	Invitation,
 	Member,
@@ -247,6 +250,26 @@ export default function SettingsPage() {
 					</div>
 
 					<div className="space-y-6">
+						{/* Account & Security Link */}
+						<Link href="/dashboard/account">
+							<Card className="transition-colors hover:bg-muted/50">
+								<CardContent className="flex items-center justify-between p-4">
+									<div className="flex items-center gap-4">
+										<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+											<IconShieldLock className="h-5 w-5 text-primary" />
+										</div>
+										<div>
+											<p className="font-medium">Account & Security</p>
+											<p className="text-sm text-muted-foreground">
+												Profile, password, passkeys, two-factor authentication
+											</p>
+										</div>
+									</div>
+									<IconChevronRight className="h-5 w-5 text-muted-foreground" />
+								</CardContent>
+							</Card>
+						</Link>
+
 						{/* Company Settings */}
 						<Card>
 							<CardHeader>
