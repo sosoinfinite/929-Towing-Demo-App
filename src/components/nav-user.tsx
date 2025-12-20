@@ -8,7 +8,6 @@ import {
 	IconUserCircle,
 } from "@tabler/icons-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -37,17 +36,27 @@ export function NavUser({
 	};
 }) {
 	const { isMobile } = useSidebar();
-	const router = useRouter();
 
 	const handleSignOut = async () => {
-		await signOut({
-			fetchOptions: {
-				onSuccess: () => {
-					router.push("/");
-					router.refresh();
+		try {
+			await signOut({
+				fetchOptions: {
+					onSuccess: () => {
+						// Hard redirect to clear all client state
+						window.location.href = "/";
+					},
+					onError: (ctx) => {
+						console.error("Sign out error:", ctx.error);
+						// Force redirect anyway
+						window.location.href = "/";
+					},
 				},
-			},
-		});
+			});
+		} catch (error) {
+			console.error("Sign out failed:", error);
+			// Force redirect on any error
+			window.location.href = "/";
+		}
 	};
 
 	// Get initials for avatar fallback
