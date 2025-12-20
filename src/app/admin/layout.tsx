@@ -1,12 +1,12 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AdminSidebar } from "@/components/admin-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { isAdmin } from "@/lib/admin";
 import { auth } from "@/lib/auth";
 
-export default async function DashboardLayout({
+export default async function AdminLayout({
 	children,
 }: {
 	children: React.ReactNode;
@@ -19,7 +19,11 @@ export default async function DashboardLayout({
 		redirect("/sign-in");
 	}
 
-	const userIsAdmin = await isAdmin(session.user.id);
+	// Check admin access
+	const hasAdminAccess = await isAdmin(session.user.id);
+	if (!hasAdminAccess) {
+		redirect("/dashboard");
+	}
 
 	return (
 		<SidebarProvider
@@ -30,14 +34,13 @@ export default async function DashboardLayout({
 				} as React.CSSProperties
 			}
 		>
-			<AppSidebar
+			<AdminSidebar
 				variant="inset"
 				user={{
 					name: session.user.name,
 					email: session.user.email,
 					avatar: session.user.image || "",
 				}}
-				isAdmin={userIsAdmin}
 			/>
 			<SidebarInset>
 				<SiteHeader />

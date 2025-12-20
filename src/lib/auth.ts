@@ -1,6 +1,7 @@
 import { render } from "@react-email/components";
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
+import { admin } from "better-auth/plugins";
 import ResetPasswordEmail from "../../emails/reset-password";
 import VerificationEmail from "../../emails/verification";
 import { pool } from "./db";
@@ -67,7 +68,14 @@ export const auth = betterAuth({
 		},
 	},
 
-	plugins: [nextCookies()],
+	plugins: [
+		nextCookies(),
+		admin({
+			adminUserIds: process.env.ADMIN_USER_ID
+				? [process.env.ADMIN_USER_ID]
+				: [],
+		}),
+	],
 });
 
 export type Session = typeof auth.$Infer.Session;

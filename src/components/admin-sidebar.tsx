@@ -1,12 +1,12 @@
 "use client";
 
 import {
-	IconHelp,
-	IconHistory,
+	IconBuilding,
+	IconDashboard,
+	IconPhone,
 	IconSettings,
 	IconShield,
-	IconToggleRight,
-	IconTruck,
+	IconUsers,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -22,51 +22,51 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+interface AdminSidebarProps extends React.ComponentProps<typeof Sidebar> {
 	user: {
 		name: string;
 		email: string;
 		avatar: string;
 	};
-	isAdmin?: boolean;
 }
 
 const navMain = [
 	{
-		title: "Dispatch",
-		url: "/dashboard",
-		icon: IconToggleRight,
+		title: "Overview",
+		url: "/admin",
+		icon: IconDashboard,
 	},
 	{
-		title: "Call History",
-		url: "/dashboard/calls",
-		icon: IconHistory,
+		title: "Companies",
+		url: "/admin/companies",
+		icon: IconBuilding,
+	},
+	{
+		title: "Users",
+		url: "/admin/users",
+		icon: IconUsers,
+	},
+	{
+		title: "All Calls",
+		url: "/admin/calls",
+		icon: IconPhone,
 	},
 ];
 
 const navSecondary = [
 	{
 		title: "Settings",
-		url: "/dashboard/settings",
+		url: "/admin/settings",
 		icon: IconSettings,
 	},
 	{
-		title: "Help",
-		url: "#",
-		icon: IconHelp,
+		title: "User Dashboard",
+		url: "/dashboard",
+		icon: IconDashboard,
 	},
 ];
 
-const adminLink = {
-	title: "Admin",
-	url: "/admin",
-	icon: IconShield,
-};
-
-export function AppSidebar({ user, isAdmin, ...props }: AppSidebarProps) {
-	const secondaryNav = isAdmin
-		? [adminLink, ...navSecondary]
-		: navSecondary;
+export function AdminSidebar({ user, ...props }: AdminSidebarProps) {
 	return (
 		<Sidebar collapsible="offcanvas" {...props}>
 			<SidebarHeader>
@@ -76,9 +76,9 @@ export function AppSidebar({ user, isAdmin, ...props }: AppSidebarProps) {
 							asChild
 							className="data-[slot=sidebar-menu-button]:!p-1.5"
 						>
-							<a href="/dashboard">
-								<IconTruck className="!size-5" />
-								<span className="text-base font-semibold">tow.center</span>
+							<a href="/admin">
+								<IconShield className="!size-5 text-red-500" />
+								<span className="text-base font-semibold">Admin</span>
 							</a>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
@@ -86,7 +86,7 @@ export function AppSidebar({ user, isAdmin, ...props }: AppSidebarProps) {
 			</SidebarHeader>
 			<SidebarContent>
 				<NavMain items={navMain} />
-				<NavSecondary items={secondaryNav} className="mt-auto" />
+				<NavSecondary items={navSecondary} className="mt-auto" />
 			</SidebarContent>
 			<SidebarFooter>
 				<NavUser user={user} />
