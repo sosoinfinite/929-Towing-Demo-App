@@ -20,6 +20,13 @@ import { sendSMS } from "./twilio";
 export const auth = betterAuth({
 	database: pool,
 
+	// Trust both www and non-www origins
+	trustedOrigins: [
+		"https://tow.center",
+		"https://www.tow.center",
+		"http://localhost:3000",
+	],
+
 	emailAndPassword: {
 		enabled: true,
 		minPasswordLength: 8,
