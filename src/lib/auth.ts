@@ -3,7 +3,7 @@ import { render } from "@react-email/components";
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
 import {
-	admin,
+	admin as adminPlugin,
 	magicLink,
 	organization,
 	phoneNumber,
@@ -15,6 +15,15 @@ import TeamInvitationEmail from "../../emails/team-invitation";
 import VerificationEmail from "../../emails/verification";
 import { pool } from "./db";
 import { FROM_EMAIL, getResend } from "./email";
+import {
+	ac,
+	admin,
+	customer,
+	dispatch,
+	driver,
+	member,
+	owner,
+} from "./permissions";
 import { sendSMS } from "./twilio";
 
 export const auth = betterAuth({
@@ -87,12 +96,21 @@ export const auth = betterAuth({
 
 	plugins: [
 		nextCookies(),
-		admin({
+		adminPlugin({
 			adminUserIds: process.env.ADMIN_USER_ID
 				? process.env.ADMIN_USER_ID.split(",").map((id) => id.trim())
 				: [],
 		}),
 		organization({
+			ac,
+			roles: {
+				owner,
+				admin,
+				member,
+				dispatch,
+				driver,
+				customer,
+			},
 			async sendInvitationEmail(data) {
 				const html = await render(
 					TeamInvitationEmail({

@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ServiceWorkerRegister } from "@/components/sw-register";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -57,6 +58,22 @@ export const metadata: Metadata = {
 		index: true,
 		follow: true,
 	},
+	appleWebApp: {
+		capable: true,
+		statusBarStyle: "default",
+		title: "tow.center",
+	},
+	formatDetection: {
+		telephone: false,
+	},
+};
+
+export const viewport: Viewport = {
+	themeColor: "#f97316",
+	width: "device-width",
+	initialScale: 1,
+	maximumScale: 1,
+	userScalable: false,
 };
 
 export default function RootLayout({
@@ -69,6 +86,7 @@ export default function RootLayout({
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
+				<ServiceWorkerRegister />
 				<Providers>{children}</Providers>
 			</body>
 		</html>
