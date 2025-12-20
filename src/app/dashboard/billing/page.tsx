@@ -50,6 +50,7 @@ export default function BillingPage() {
 	const [loading, setLoading] = useState(true);
 	const [invoicesLoading, setInvoicesLoading] = useState(true);
 	const [upgrading, setUpgrading] = useState<string | null>(null);
+	const [openingPortal, setOpeningPortal] = useState(false);
 
 	useEffect(() => {
 		// Fetch subscription info
@@ -74,6 +75,25 @@ export default function BillingPage() {
 			})
 			.catch(() => setInvoicesLoading(false));
 	}, []);
+
+	const handleOpenPortal = async () => {
+		setOpeningPortal(true);
+		try {
+			const res = await fetch("/api/stripe/portal", {
+				method: "POST",
+			});
+			const data = await res.json();
+			if (data.url) {
+				window.location.href = data.url;
+			} else {
+				console.error("No portal URL returned");
+				setOpeningPortal(false);
+			}
+		} catch (error) {
+			console.error("Failed to open portal:", error);
+			setOpeningPortal(false);
+		}
+	};
 
 	const handleUpgrade = async (planId: string) => {
 		setUpgrading(planId);
@@ -202,15 +222,37 @@ export default function BillingPage() {
 											</p>
 										</div>
 									</div>
-									<Badge
-										className={
-											subscription?.status === "active" || !subscription
-												? "border-green-500/20 bg-green-500/10 text-green-600"
-												: ""
-										}
-									>
-										{subscription?.status || "Active"}
-									</Badge>
+									<div className="flex items-center gap-2">
+										<Badge
+											className={
+												subscription?.status === "active" || !subscription
+													? "border-green-500/20 bg-green-500/10 text-green-600"
+													: ""
+											}
+										>
+											{subscription?.status || "Active"}
+										</Badge>
+										{subscription?.stripe_customer_id && (
+											<Button
+												variant="outline"
+												size="sm"
+												disabled={openingPortal}
+												onClick={handleOpenPortal}
+											>
+												{openingPortal ? (
+													<>
+														<IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+														Opening...
+													</>
+												) : (
+													<>
+														<IconExternalLink className="mr-2 h-4 w-4" />
+														Manage
+													</>
+												)}
+											</Button>
+										)}
+									</div>
 								</div>
 							</CardContent>
 						</Card>

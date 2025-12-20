@@ -8,14 +8,12 @@ export function getStripe(): Stripe {
 		if (!process.env.STRIPE_SECRET_KEY) {
 			throw new Error("STRIPE_SECRET_KEY environment variable is required");
 		}
-		_stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-			apiVersion: "2025-12-15.clover",
-		});
+		_stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 	}
 	return _stripe;
 }
 
-// Plan pricing
+// Plan configuration with Stripe price IDs
 export const PLANS = {
 	alpha: {
 		name: "Alpha",
@@ -27,6 +25,7 @@ export const PLANS = {
 			"SMS notifications",
 			"Dashboard access",
 		],
+		getPriceId: () => process.env.STRIPE_PRICE_ALPHA,
 	},
 	starter: {
 		name: "Starter",
@@ -38,6 +37,7 @@ export const PLANS = {
 			"30-day call recording",
 			"Priority support",
 		],
+		getPriceId: () => process.env.STRIPE_PRICE_STARTER,
 	},
 	pro: {
 		name: "Pro",
@@ -49,7 +49,45 @@ export const PLANS = {
 			"90-day call recording",
 			"White-glove setup",
 		],
+		getPriceId: () => process.env.STRIPE_PRICE_PRO,
 	},
 } as const;
 
 export type PlanId = keyof typeof PLANS;
+
+// Create a Stripe Customer Portal session
+export async function createPortalSession(
+	customerId: string,
+	returnUrl: string,
+) {
+	const stripe = getStripe();
+	const session = await stripe.billingPortal.sessions.create({
+		customer: customerId,
+		return_url: returnUrl,
+	});
+	return session;
+}
+
+// Get or create a Stripe customer for a user
+export async function getOrCreateCustomer(
+	email: string,
+	metadata?: { userId?: string; companyId?: string },
+) {
+	const stripe = getStripe();
+
+	// Search for existing customer
+	const customers = await stripe.customers.list({
+		email,
+		limit: 1,
+	});
+
+	if (customers.data.length > 0) {
+		return customers.data[0];
+	}
+
+	// Create new customer
+	return stripe.customers.create({
+		email,
+		metadata: metadata || {},
+	});
+}
