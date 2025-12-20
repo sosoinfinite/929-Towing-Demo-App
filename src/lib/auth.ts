@@ -1,4 +1,5 @@
 import { render } from "@react-email/components";
+import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
 import {
@@ -6,6 +7,7 @@ import {
 	magicLink,
 	organization,
 	phoneNumber,
+	twoFactor,
 } from "better-auth/plugins";
 import MagicLinkEmail from "../../emails/magic-link";
 import ResetPasswordEmail from "../../emails/reset-password";
@@ -124,6 +126,21 @@ export const auth = betterAuth({
 			signUpOnVerification: {
 				getTempEmail: (phone) => `${phone.replace(/\+/g, "")}@phone.tow.center`,
 			},
+		}),
+		twoFactor({
+			issuer: "tow.center",
+			totpOptions: {
+				digits: 6,
+				period: 30,
+			},
+		}),
+		passkey({
+			rpID: process.env.NODE_ENV === "production" ? "tow.center" : "localhost",
+			rpName: "tow.center",
+			origin:
+				process.env.NODE_ENV === "production"
+					? "https://tow.center"
+					: "http://localhost:3000",
 		}),
 	],
 });
