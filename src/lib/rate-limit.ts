@@ -1,12 +1,17 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-// Create Redis client - will be undefined if env vars not set
+// Create Redis client - supports both Vercel KV and direct Upstash env vars
+const redisUrl =
+	process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const redisToken =
+	process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
 const redis =
-	process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+	redisUrl && redisToken
 		? new Redis({
-				url: process.env.UPSTASH_REDIS_REST_URL,
-				token: process.env.UPSTASH_REDIS_REST_TOKEN,
+				url: redisUrl,
+				token: redisToken,
 			})
 		: null;
 
