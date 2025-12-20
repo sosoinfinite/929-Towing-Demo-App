@@ -3,7 +3,7 @@
 import { AuthView } from "@daveyplate/better-auth-ui";
 import Link from "next/link";
 
-export default function SignUpPage() {
+export default function ResetPasswordPage() {
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
 			<div className="w-full max-w-md">
@@ -11,23 +11,19 @@ export default function SignUpPage() {
 					<Link href="/">
 						<h1 className="text-3xl font-bold text-foreground">tow.center</h1>
 					</Link>
-					<p className="mt-2 text-muted-foreground">Create your account</p>
+					<p className="mt-2 text-muted-foreground">Create new password</p>
 				</div>
 
-				<AuthView view="SIGN_UP" />
+				<AuthView view="RESET_PASSWORD" />
 
 				<p className="mt-6 text-center text-sm text-muted-foreground">
-					Already have an account?{" "}
+					Remember your password?{" "}
 					<Link
 						href="/sign-in"
 						className="font-medium text-primary hover:text-primary/80"
 					>
 						Sign in
 					</Link>
-				</p>
-
-				<p className="mt-6 text-center text-xs text-muted-foreground">
-					Alpha program: Free for 3 months, then $49/mo locked for life
 				</p>
 			</div>
 		</div>

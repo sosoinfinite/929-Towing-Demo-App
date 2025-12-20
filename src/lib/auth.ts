@@ -1,7 +1,13 @@
 import { render } from "@react-email/components";
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
-import { admin, organization, phoneNumber } from "better-auth/plugins";
+import {
+	admin,
+	magicLink,
+	organization,
+	phoneNumber,
+} from "better-auth/plugins";
+import MagicLinkEmail from "../../emails/magic-link";
 import ResetPasswordEmail from "../../emails/reset-password";
 import TeamInvitationEmail from "../../emails/team-invitation";
 import VerificationEmail from "../../emails/verification";
@@ -91,6 +97,21 @@ export const auth = betterAuth({
 					from: FROM_EMAIL,
 					to: data.email,
 					subject: `You've been invited to join ${data.organization.name} on tow.center`,
+					html,
+				});
+			},
+		}),
+		magicLink({
+			sendMagicLink: async ({ email, url }) => {
+				const html = await render(
+					MagicLinkEmail({
+						magicLinkUrl: url,
+					}),
+				);
+				await getResend().emails.send({
+					from: FROM_EMAIL,
+					to: email,
+					subject: "Sign in to tow.center",
 					html,
 				});
 			},
