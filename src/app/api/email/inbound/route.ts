@@ -201,13 +201,28 @@ export async function POST(request: NextRequest) {
 					[leadId, emailId, fromEmail, fromName, data.subject, bodyPreview],
 				);
 
+				// Store the inbound email as a lead_message for conversation history
+				const messageId = `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+				await pool.query(
+					`INSERT INTO lead_message (id, lead_id, direction, from_email, to_email, subject, body, created_at)
+					 VALUES ($1, $2, 'inbound', $3, $4, $5, $6, NOW())`,
+					[
+						messageId,
+						leadId,
+						fromEmail,
+						toAddress,
+						data.subject || "(no subject)",
+						data.text || data.html || "",
+					],
+				);
+
 				// Mark email as processed
 				await pool.query(
 					"UPDATE inbound_email SET processed = true WHERE id = $1",
 					[emailId],
 				);
 
-				console.log(`Created sales lead: ${leadId}`);
+				console.log(`Created sales lead: ${leadId} with message: ${messageId}`);
 			} catch (leadError) {
 				console.error("Error creating sales lead:", leadError);
 			}

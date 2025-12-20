@@ -5,6 +5,7 @@ import {
 	IconMail,
 	IconMailOpened,
 	IconRefresh,
+	IconSend,
 	IconX,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -30,6 +31,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
 	Table,
 	TableBody,
@@ -55,6 +57,17 @@ interface Lead {
 	assigned_to_name: string | null;
 	created_at: string;
 	updated_at: string;
+}
+
+interface Message {
+	id: string;
+	lead_id: string;
+	direction: "inbound" | "outbound";
+	from_email: string;
+	to_email: string;
+	subject: string | null;
+	body: string;
+	created_at: string;
 }
 
 interface Stats {
@@ -86,7 +99,12 @@ export default function AdminLeadsPage() {
 	});
 	const [loading, setLoading] = useState(true);
 	const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+	const [messages, setMessages] = useState<Message[]>([]);
+	const [loadingMessages, setLoadingMessages] = useState(false);
 	const [notes, setNotes] = useState("");
+	const [replySubject, setReplySubject] = useState("");
+	const [replyMessage, setReplyMessage] = useState("");
+	const [sending, setSending] = useState(false);
 
 	const fetchLeads = () => {
 		setLoading(true);
@@ -100,9 +118,29 @@ export default function AdminLeadsPage() {
 			.catch(() => setLoading(false));
 	};
 
+	const fetchMessages = async (leadId: string) => {
+		setLoadingMessages(true);
+		try {
+			const res = await fetch(`/api/admin/leads/${leadId}/messages`);
+			const data = await res.json();
+			setMessages(data.messages || []);
+		} catch {
+			setMessages([]);
+		}
+		setLoadingMessages(false);
+	};
+
 	useEffect(() => {
 		fetchLeads();
 	}, []);
+
+	const openLead = (lead: Lead) => {
+		setSelectedLead(lead);
+		setNotes(lead.notes || "");
+		setReplySubject(`Re: ${lead.subject || "Your inquiry"}`);
+		setReplyMessage("");
+		fetchMessages(lead.id);
+	};
 
 	const updateStatus = async (leadId: string, newStatus: string) => {
 		await fetch("/api/admin/leads", {
@@ -120,8 +158,33 @@ export default function AdminLeadsPage() {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ id: selectedLead.id, notes }),
 		});
-		setSelectedLead(null);
 		fetchLeads();
+	};
+
+	const sendReply = async () => {
+		if (!selectedLead || !replyMessage.trim()) return;
+		setSending(true);
+		try {
+			const res = await fetch(
+				`/api/admin/leads/${selectedLead.id}/messages`,
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						subject: replySubject,
+						message: replyMessage,
+					}),
+				},
+			);
+			if (res.ok) {
+				setReplyMessage("");
+				fetchMessages(selectedLead.id);
+				fetchLeads(); // Refresh to update status
+			}
+		} catch (error) {
+			console.error("Error sending reply:", error);
+		}
+		setSending(false);
 	};
 
 	const formatDate = (dateString: string) => {
@@ -198,7 +261,7 @@ export default function AdminLeadsPage() {
 						<CardHeader>
 							<CardTitle>All Leads</CardTitle>
 							<CardDescription>
-								Click on a lead to view full email and add notes
+								Click on a lead to view conversation and reply
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
@@ -240,10 +303,7 @@ export default function AdminLeadsPage() {
 													<button
 														type="button"
 														className="text-left hover:underline"
-														onClick={() => {
-															setSelectedLead(lead);
-															setNotes(lead.notes || "");
-														}}
+														onClick={() => openLead(lead)}
 													>
 														<div className="font-medium">
 															{lead.from_name || lead.from_email}
@@ -324,46 +384,100 @@ export default function AdminLeadsPage() {
 
 			{/* Lead Detail Dialog */}
 			<Dialog open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
-				<DialogContent className="max-w-2xl">
+				<DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
 					<DialogHeader>
 						<DialogTitle>
 							{selectedLead?.from_name || selectedLead?.from_email}
 						</DialogTitle>
-						<DialogDescription>{selectedLead?.from_email}</DialogDescription>
+						<DialogDescription className="flex items-center gap-2">
+							{selectedLead?.from_email}
+							{selectedLead && (
+								<Badge className={statusColors[selectedLead.status]}>
+									{selectedLead.status}
+								</Badge>
+							)}
+						</DialogDescription>
 					</DialogHeader>
-					<div className="space-y-4">
-						<div>
-							<h4 className="text-sm font-medium text-muted-foreground">
-								Subject
-							</h4>
-							<p>{selectedLead?.subject || "(no subject)"}</p>
+
+					<div className="flex-1 overflow-hidden flex flex-col gap-4">
+						{/* Conversation Thread */}
+						<div className="flex-1 overflow-y-auto space-y-3 min-h-[200px] max-h-[300px] border rounded-md p-3">
+							{loadingMessages ? (
+								<div className="text-center text-muted-foreground py-4">
+									Loading messages...
+								</div>
+							) : messages.length === 0 ? (
+								<div className="text-center text-muted-foreground py-4">
+									No messages yet
+								</div>
+							) : (
+								messages.map((msg) => (
+									<div
+										key={msg.id}
+										className={`rounded-lg p-3 ${
+											msg.direction === "inbound"
+												? "bg-muted"
+												: "bg-primary/10 ml-8"
+										}`}
+									>
+										<div className="flex items-center justify-between mb-1">
+											<span className="text-xs font-medium">
+												{msg.direction === "inbound" ? "From" : "To"}:{" "}
+												{msg.direction === "inbound"
+													? msg.from_email
+													: msg.to_email}
+											</span>
+											<span className="text-xs text-muted-foreground">
+												{formatDate(msg.created_at)}
+											</span>
+										</div>
+										{msg.subject && (
+											<div className="text-xs text-muted-foreground mb-1">
+												Subject: {msg.subject}
+											</div>
+										)}
+										<div className="text-sm whitespace-pre-wrap">
+											{msg.body}
+										</div>
+									</div>
+								))
+							)}
 						</div>
-						<div>
-							<h4 className="text-sm font-medium text-muted-foreground">
-								Message
-							</h4>
-							<div className="mt-1 max-h-[300px] overflow-y-auto rounded-md bg-muted p-3 text-sm whitespace-pre-wrap">
-								{selectedLead?.text_body ||
-									selectedLead?.body_preview ||
-									"(no content)"}
-							</div>
-						</div>
-						<div>
-							<h4 className="mb-2 text-sm font-medium text-muted-foreground">
-								Notes
-							</h4>
-							<Textarea
-								value={notes}
-								onChange={(e) => setNotes(e.target.value)}
-								placeholder="Add notes about this lead..."
-								rows={3}
+
+						{/* Reply Section */}
+						<div className="space-y-2 border-t pt-3">
+							<Input
+								value={replySubject}
+								onChange={(e) => setReplySubject(e.target.value)}
+								placeholder="Subject"
+								className="text-sm"
 							/>
-						</div>
-						<div className="flex justify-end gap-2">
-							<Button variant="outline" onClick={() => setSelectedLead(null)}>
-								Cancel
-							</Button>
-							<Button onClick={saveNotes}>Save Notes</Button>
+							<Textarea
+								value={replyMessage}
+								onChange={(e) => setReplyMessage(e.target.value)}
+								placeholder="Type your reply..."
+								rows={4}
+							/>
+							<div className="flex justify-between items-center">
+								<div className="flex items-center gap-2">
+									<Input
+										value={notes}
+										onChange={(e) => setNotes(e.target.value)}
+										placeholder="Internal notes..."
+										className="text-sm w-64"
+									/>
+									<Button variant="outline" size="sm" onClick={saveNotes}>
+										Save Notes
+									</Button>
+								</div>
+								<Button
+									onClick={sendReply}
+									disabled={sending || !replyMessage.trim()}
+								>
+									<IconSend className="mr-2 h-4 w-4" />
+									{sending ? "Sending..." : "Send Reply"}
+								</Button>
+							</div>
 						</div>
 					</div>
 				</DialogContent>

@@ -218,4 +218,32 @@ CREATE TABLE IF NOT EXISTS lead (
 CREATE INDEX IF NOT EXISTS idx_lead_status ON lead(status);
 CREATE INDEX IF NOT EXISTS idx_lead_created_at ON lead(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_lead_from_email ON lead(from_email);
+
+-- Lead messages (conversation thread for sales emails)
+CREATE TABLE IF NOT EXISTS lead_message (
+  id TEXT PRIMARY KEY,
+  lead_id TEXT NOT NULL REFERENCES lead(id) ON DELETE CASCADE,
+  direction TEXT NOT NULL,  -- 'inbound' or 'outbound'
+  from_email TEXT NOT NULL,
+  to_email TEXT NOT NULL,
+  subject TEXT,
+  body TEXT NOT NULL,
+  resend_id TEXT,  -- Resend message ID for sent emails
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Lead message indexes
+CREATE INDEX IF NOT EXISTS idx_lead_message_lead_id ON lead_message(lead_id);
+CREATE INDEX IF NOT EXISTS idx_lead_message_created_at ON lead_message(created_at);
+
+-- Email templates for quick replies
+CREATE TABLE IF NOT EXISTS email_template (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  body TEXT NOT NULL,
+  category TEXT DEFAULT 'general',  -- 'intro', 'followup', 'pricing', 'demo', 'general'
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
 `;
