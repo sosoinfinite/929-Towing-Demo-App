@@ -1,10 +1,6 @@
+import { IconBuilding, IconPhone, IconUsers } from "@tabler/icons-react";
 import { headers } from "next/headers";
 import Link from "next/link";
-import {
-	IconBuilding,
-	IconPhone,
-	IconUsers,
-} from "@tabler/icons-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { getPool } from "@/lib/db";
@@ -17,8 +13,12 @@ export default async function AdminPage() {
 	const pool = getPool();
 
 	// Get counts
-	const companyCount = await pool.query("SELECT COUNT(*)::int as count FROM company");
-	const userCount = await pool.query('SELECT COUNT(*)::int as count FROM "user"');
+	const companyCount = await pool.query(
+		"SELECT COUNT(*)::int as count FROM company",
+	);
+	const userCount = await pool.query(
+		'SELECT COUNT(*)::int as count FROM "user"',
+	);
 	const callCount = await pool.query("SELECT COUNT(*)::int as count FROM call");
 
 	const stats = [

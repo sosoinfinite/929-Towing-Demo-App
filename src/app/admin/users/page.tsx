@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
 import { IconCheck, IconUser, IconX } from "@tabler/icons-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
 	Card,
@@ -52,17 +52,13 @@ export default function AdminUsersPage() {
 				<div className="px-4 lg:px-6">
 					<div className="mb-6">
 						<h1 className="text-2xl font-bold">Users</h1>
-						<p className="text-muted-foreground">
-							Manage all registered users
-						</p>
+						<p className="text-muted-foreground">Manage all registered users</p>
 					</div>
 
 					<Card>
 						<CardHeader>
 							<CardTitle>All Users</CardTitle>
-							<CardDescription>
-								View and manage user accounts
-							</CardDescription>
+							<CardDescription>View and manage user accounts</CardDescription>
 						</CardHeader>
 						<CardContent>
 							{loading ? (

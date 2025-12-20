@@ -64,9 +64,7 @@ const adminLink = {
 };
 
 export function AppSidebar({ user, isAdmin, ...props }: AppSidebarProps) {
-	const secondaryNav = isAdmin
-		? [adminLink, ...navSecondary]
-		: navSecondary;
+	const secondaryNav = isAdmin ? [adminLink, ...navSecondary] : navSecondary;
 	return (
 		<Sidebar collapsible="offcanvas" {...props}>
 			<SidebarHeader>

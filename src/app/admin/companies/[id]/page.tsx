@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
 import {
 	IconArrowLeft,
 	IconCheck,
@@ -9,6 +7,8 @@ import {
 	IconPhone,
 	IconUser,
 } from "@tabler/icons-react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -142,7 +142,11 @@ export default function AdminCompanyEditPage() {
 		return (
 			<div className="flex min-h-[400px] flex-col items-center justify-center">
 				<h2 className="text-xl font-bold">Company not found</h2>
-				<Button variant="outline" className="mt-4" onClick={() => router.back()}>
+				<Button
+					variant="outline"
+					className="mt-4"
+					onClick={() => router.back()}
+				>
 					Go back
 				</Button>
 			</div>
@@ -297,9 +301,7 @@ export default function AdminCompanyEditPage() {
 					<Card className="mt-6">
 						<CardHeader>
 							<CardTitle>Recent Calls</CardTitle>
-							<CardDescription>
-								Last 10 calls for this company
-							</CardDescription>
+							<CardDescription>Last 10 calls for this company</CardDescription>
 						</CardHeader>
 						<CardContent>
 							{calls.length === 0 ? (

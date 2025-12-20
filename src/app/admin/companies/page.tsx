@@ -1,13 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { IconBuilding, IconCheck, IconPhone, IconX } from "@tabler/icons-react";
 import Link from "next/link";
-import {
-	IconBuilding,
-	IconCheck,
-	IconPhone,
-	IconX,
-} from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
 	Card,

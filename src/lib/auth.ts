@@ -1,8 +1,9 @@
 import { render } from "@react-email/components";
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
-import { admin } from "better-auth/plugins";
+import { admin, organization } from "better-auth/plugins";
 import ResetPasswordEmail from "../../emails/reset-password";
+import TeamInvitationEmail from "../../emails/team-invitation";
 import VerificationEmail from "../../emails/verification";
 import { pool } from "./db";
 import { FROM_EMAIL, getResend } from "./email";
@@ -72,8 +73,26 @@ export const auth = betterAuth({
 		nextCookies(),
 		admin({
 			adminUserIds: process.env.ADMIN_USER_ID
-				? [process.env.ADMIN_USER_ID]
+				? process.env.ADMIN_USER_ID.split(",").map((id) => id.trim())
 				: [],
+		}),
+		organization({
+			async sendInvitationEmail(data) {
+				const html = await render(
+					TeamInvitationEmail({
+						inviterName: data.inviter.user.name,
+						organizationName: data.organization.name,
+						inviteLink: `${process.env.NEXT_PUBLIC_BASE_URL}/invitations/${data.id}`,
+						role: data.role,
+					}),
+				);
+				await getResend().emails.send({
+					from: FROM_EMAIL,
+					to: data.email,
+					subject: `You've been invited to join ${data.organization.name} on tow.center`,
+					html,
+				});
+			},
 		}),
 	],
 });

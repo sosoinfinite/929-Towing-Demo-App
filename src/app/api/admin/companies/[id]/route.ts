@@ -123,10 +123,7 @@ export async function PUT(
 	}
 
 	if (updates.length === 0) {
-		return NextResponse.json(
-			{ error: "No fields to update" },
-			{ status: 400 },
-		);
+		return NextResponse.json({ error: "No fields to update" }, { status: 400 });
 	}
 
 	values.push(id);
