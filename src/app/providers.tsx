@@ -25,6 +25,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
 				RESET_PASSWORD: "reset-password",
 				TWO_FACTOR: "two-factor",
 			}}
+			// Center the auth card
+			classNames={{
+				card: "mx-auto",
+			}}
 		>
 			{children}
 			<Toaster richColors position="top-right" />
