@@ -26,14 +26,14 @@ export async function GET() {
 			u.name,
 			u.email,
 			u.role,
-			u.email_verified,
+			u."emailVerified" as email_verified,
 			u.banned,
-			u.created_at,
+			u."createdAt" as created_at,
 			c.name as company_name,
 			c.id as company_id
 		FROM "user" u
 		LEFT JOIN company c ON u.company_id = c.id
-		ORDER BY u.created_at DESC
+		ORDER BY u."createdAt" DESC
 	`);
 
 	return NextResponse.json({ users: result.rows });
