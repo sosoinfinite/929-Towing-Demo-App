@@ -25,6 +25,7 @@ import { authClient, useSession } from "@/lib/auth-client";
 export default function AccountPage() {
 	const { data: session, isPending } = useSession();
 	const [name, setName] = useState("");
+	const [imageUrl, setImageUrl] = useState("");
 	const [saving, setSaving] = useState(false);
 	const [saved, setSaved] = useState(false);
 
@@ -36,9 +37,14 @@ export default function AccountPage() {
 	const [passwordSaved, setPasswordSaved] = useState(false);
 	const [passwordError, setPasswordError] = useState("");
 
-	// Initialize name from session when it loads
-	if (session?.user?.name && !name && !saving) {
-		setName(session.user.name);
+	// Initialize name and image from session when it loads
+	if (session?.user && !saving) {
+		if (session.user.name && !name) {
+			setName(session.user.name);
+		}
+		if (session.user.image && !imageUrl) {
+			setImageUrl(session.user.image);
+		}
 	}
 
 	const handleSave = async () => {
@@ -50,6 +56,7 @@ export default function AccountPage() {
 		try {
 			await authClient.updateUser({
 				name: name.trim(),
+				image: imageUrl.trim() || undefined,
 			});
 			setSaved(true);
 			setTimeout(() => setSaved(false), 2000);
@@ -138,7 +145,7 @@ export default function AccountPage() {
 							<CardContent className="space-y-6">
 								<div className="flex items-center gap-4">
 									<Avatar className="h-20 w-20">
-										<AvatarImage src={user?.image || undefined} />
+										<AvatarImage src={imageUrl || user?.image || undefined} />
 										<AvatarFallback className="text-lg">
 											{initials}
 										</AvatarFallback>
@@ -160,6 +167,20 @@ export default function AccountPage() {
 											onChange={(e) => setName(e.target.value)}
 											placeholder="Your name"
 										/>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="avatar">Avatar URL</Label>
+										<Input
+											id="avatar"
+											type="url"
+											value={imageUrl}
+											onChange={(e) => setImageUrl(e.target.value)}
+											placeholder="https://example.com/avatar.jpg"
+										/>
+										<p className="text-xs text-muted-foreground">
+											Enter a URL to an image for your profile picture
+										</p>
 									</div>
 
 									<Button
