@@ -148,10 +148,10 @@ export default function PrivacyPage() {
 						<p className="mt-4 text-muted-foreground">
 							To exercise these rights, contact us at{" "}
 							<a
-								href="mailto:privacy@tow.center"
+								href="mailto:hookups@tow.center"
 								className="text-primary hover:underline"
 							>
-								privacy@tow.center
+								hookups@tow.center
 							</a>
 							.
 						</p>
@@ -185,10 +185,10 @@ export default function PrivacyPage() {
 						<p className="mt-2 text-muted-foreground">
 							Email:{" "}
 							<a
-								href="mailto:privacy@tow.center"
+								href="mailto:hookups@tow.center"
 								className="text-primary hover:underline"
 							>
-								privacy@tow.center
+								hookups@tow.center
 							</a>
 						</p>
 					</section>

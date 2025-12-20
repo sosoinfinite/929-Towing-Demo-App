@@ -220,10 +220,10 @@ export default function TermsPage() {
 						<p className="mt-2 text-muted-foreground">
 							Email:{" "}
 							<a
-								href="mailto:legal@tow.center"
+								href="mailto:hookups@tow.center"
 								className="text-primary hover:underline"
 							>
-								legal@tow.center
+								hookups@tow.center
 							</a>
 						</p>
 					</section>

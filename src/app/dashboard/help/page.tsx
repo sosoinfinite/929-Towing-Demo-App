@@ -43,7 +43,7 @@ const faqs = [
 	{
 		question: "How do I receive motor club dispatch emails?",
 		answer:
-			"Forward your motor club emails (AAA, Agero, Urgently, Swoop, Honk) to dispatch@tow.center. Our AI automatically parses the email and creates a job in your dashboard with all details extracted - customer info, vehicle, location, and PO number.",
+			"Forward your motor club emails (AAA, Agero, Urgently, Swoop, Honk) to hookups@tow.center. Our AI automatically parses the email and creates a job in your dashboard with all details extracted - customer info, vehicle, location, and PO number.",
 	},
 	{
 		question: "How does 2-way SMS work with drivers?",
@@ -144,7 +144,7 @@ const guides = [
 	{
 		title: "Motor Club Setup",
 		items: [
-			"Forward dispatch emails to dispatch@tow.center",
+			"Forward dispatch emails to hookups@tow.center",
 			"Jobs appear automatically in your dashboard",
 			"Assign drivers with one click",
 			"Track job status from pending to complete",
@@ -166,8 +166,8 @@ const contactOptions = [
 		icon: IconMail,
 		title: "Email Support",
 		description: "Get help via email within 24 hours",
-		action: "support@tow.center",
-		href: "mailto:support@tow.center",
+		action: "hookups@tow.center",
+		href: "mailto:hookups@tow.center",
 	},
 	{
 		icon: IconMessageCircle,
