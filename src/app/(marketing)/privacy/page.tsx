@@ -29,7 +29,7 @@ export default function PrivacyPage() {
 			<main className="mx-auto max-w-4xl px-4 py-12">
 				<h1 className="mb-2 text-3xl font-bold">Privacy Policy</h1>
 				<p className="mb-8 text-muted-foreground">
-					Last updated: December 19, 2024
+					Last updated: December 20, 2025
 				</p>
 
 				<div className="prose prose-neutral dark:prose-invert max-w-none space-y-8">
