@@ -11,20 +11,9 @@ export default function SignUpPage() {
 					<Link href="/">
 						<h1 className="text-3xl font-bold text-foreground">tow.center</h1>
 					</Link>
-					<p className="mt-2 text-muted-foreground">Create your account</p>
 				</div>
 
 				<AuthView view="SIGN_UP" />
-
-				<p className="mt-6 text-center text-sm text-muted-foreground">
-					Already have an account?{" "}
-					<Link
-						href="/sign-in"
-						className="font-medium text-primary hover:text-primary/80"
-					>
-						Sign in
-					</Link>
-				</p>
 
 				<p className="mt-6 text-center text-xs text-muted-foreground">
 					Alpha program: Free for 3 months, then $49/mo locked for life
