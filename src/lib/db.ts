@@ -93,9 +93,109 @@ CREATE TABLE IF NOT EXISTS notification_preferences (
   UNIQUE(user_id)
 );
 
+-- Jobs queue (dispatch requests from email, SMS, phone, manual entry)
+CREATE TABLE IF NOT EXISTS job (
+  id TEXT PRIMARY KEY,
+  company_id TEXT NOT NULL REFERENCES company(id),
+  source TEXT NOT NULL DEFAULT 'manual',
+  source_id TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+
+  customer_name TEXT,
+  customer_phone TEXT,
+  customer_email TEXT,
+
+  service_type TEXT,
+  vehicle_info TEXT,
+  pickup_location TEXT,
+  dropoff_location TEXT,
+
+  motor_club TEXT,
+  po_number TEXT,
+
+  assigned_driver_id TEXT REFERENCES "user"(id),
+  assigned_at TIMESTAMP,
+
+  notes TEXT,
+  raw_content TEXT,
+
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Message threading (SMS + email communications)
+CREATE TABLE IF NOT EXISTS message (
+  id TEXT PRIMARY KEY,
+  company_id TEXT NOT NULL REFERENCES company(id),
+  job_id TEXT REFERENCES job(id),
+  thread_id TEXT,
+
+  direction TEXT NOT NULL,
+  channel TEXT NOT NULL,
+  from_address TEXT NOT NULL,
+  to_address TEXT NOT NULL,
+
+  subject TEXT,
+  content TEXT NOT NULL,
+
+  actor_type TEXT,
+  actor_user_id TEXT REFERENCES "user"(id),
+
+  external_id TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Raw inbound emails
+CREATE TABLE IF NOT EXISTS inbound_email (
+  id TEXT PRIMARY KEY,
+  resend_id TEXT UNIQUE,
+  from_address TEXT NOT NULL,
+  to_address TEXT NOT NULL,
+  subject TEXT,
+  text_body TEXT,
+  html_body TEXT,
+  processed BOOLEAN DEFAULT false,
+  job_id TEXT REFERENCES job(id),
+  received_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Driver profiles (extends user for driver-specific info)
+CREATE TABLE IF NOT EXISTS driver_profile (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  company_id TEXT NOT NULL REFERENCES company(id),
+  phone TEXT,
+  status TEXT DEFAULT 'available',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id)
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_call_company_id ON call(company_id);
 CREATE INDEX IF NOT EXISTS idx_call_created_at ON call(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_subscription_company_id ON subscription(company_id);
 CREATE INDEX IF NOT EXISTS idx_notification_preferences_user_id ON notification_preferences(user_id);
+
+-- Job indexes
+CREATE INDEX IF NOT EXISTS idx_job_company_id ON job(company_id);
+CREATE INDEX IF NOT EXISTS idx_job_status ON job(status);
+CREATE INDEX IF NOT EXISTS idx_job_created_at ON job(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_job_customer_phone ON job(customer_phone);
+CREATE INDEX IF NOT EXISTS idx_job_assigned_driver ON job(assigned_driver_id);
+
+-- Message indexes
+CREATE INDEX IF NOT EXISTS idx_message_company_id ON message(company_id);
+CREATE INDEX IF NOT EXISTS idx_message_job_id ON message(job_id);
+CREATE INDEX IF NOT EXISTS idx_message_thread_id ON message(thread_id);
+CREATE INDEX IF NOT EXISTS idx_message_from_address ON message(from_address);
+CREATE INDEX IF NOT EXISTS idx_message_created_at ON message(created_at DESC);
+
+-- Inbound email indexes
+CREATE INDEX IF NOT EXISTS idx_inbound_email_to_address ON inbound_email(to_address);
+CREATE INDEX IF NOT EXISTS idx_inbound_email_processed ON inbound_email(processed);
+
+-- Driver profile indexes
+CREATE INDEX IF NOT EXISTS idx_driver_profile_company ON driver_profile(company_id);
+CREATE INDEX IF NOT EXISTS idx_driver_profile_phone ON driver_profile(phone);
 `;

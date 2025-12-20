@@ -1,7 +1,7 @@
+import { ArrowRight, MapPin, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MapPin, Users, ArrowRight } from "lucide-react";
-import { METROS, getMetrosByRegion, formatPopulation } from "@/lib/metros";
+import { formatPopulation, getMetrosByRegion, METROS } from "@/lib/metros";
 
 export const metadata: Metadata = {
 	title: "Service Areas - AI Towing Dispatch Coverage",
@@ -124,9 +124,7 @@ export default function ServiceAreasPage() {
 			{/* CTA */}
 			<section className="py-16 bg-primary text-primary-foreground">
 				<div className="container mx-auto px-4 text-center">
-					<h2 className="text-3xl font-bold mb-4">
-						Don&apos;t See Your Area?
-					</h2>
+					<h2 className="text-3xl font-bold mb-4">Don&apos;t See Your Area?</h2>
 					<p className="text-primary-foreground/80 mb-8 max-w-xl mx-auto">
 						We&apos;re expanding rapidly. Contact us to discuss bringing
 						AI-powered dispatch to your region.
@@ -144,7 +142,9 @@ export default function ServiceAreasPage() {
 			{/* Footer */}
 			<footer className="py-8 border-t">
 				<div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-					<p>&copy; {new Date().getFullYear()} tow.center. All rights reserved.</p>
+					<p>
+						&copy; {new Date().getFullYear()} tow.center. All rights reserved.
+					</p>
 				</div>
 			</footer>
 		</div>

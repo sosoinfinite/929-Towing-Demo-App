@@ -1,15 +1,15 @@
+import {
+	ArrowRight,
+	Building2,
+	CheckCircle,
+	Clock,
+	MapPin,
+	Phone,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-	MapPin,
-	Phone,
-	Clock,
-	CheckCircle,
-	ArrowRight,
-	Building2,
-} from "lucide-react";
-import { METROS, getMetroBySlug, formatPopulation } from "@/lib/metros";
+import { formatPopulation, getMetroBySlug, METROS } from "@/lib/metros";
 
 interface Props {
 	params: Promise<{ slug: string }>;

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	IconBriefcase,
 	IconHelp,
 	IconHistory,
 	IconSettings,
@@ -9,9 +10,9 @@ import {
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
-import { TowCenterIcon } from "@/components/tow-center-icon";
 import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
+import { TowCenterIcon } from "@/components/tow-center-icon";
 import {
 	Sidebar,
 	SidebarContent,
@@ -36,6 +37,11 @@ const navMain = [
 		title: "Dispatch",
 		url: "/dashboard",
 		icon: IconToggleRight,
+	},
+	{
+		title: "Jobs",
+		url: "/dashboard/jobs",
+		icon: IconBriefcase,
 	},
 	{
 		title: "Call History",
