@@ -52,7 +52,7 @@ const navSecondary = [
 	},
 	{
 		title: "Help",
-		url: "#",
+		url: "/dashboard/help",
 		icon: IconHelp,
 	},
 ];
