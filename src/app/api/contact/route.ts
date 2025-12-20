@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 		// Send notification email to support
 		await resend.emails.send({
 			from: FROM_EMAIL,
-			to: "support@tow.center",
+			to: "hookups@tow.center",
 			replyTo: email,
 			subject: `Contact Form: ${company ? `${company} - ` : ""}${name}`,
 			html: `

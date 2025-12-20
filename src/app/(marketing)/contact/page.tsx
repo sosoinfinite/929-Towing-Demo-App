@@ -93,10 +93,10 @@ export default function ContactPage() {
 								<div>
 									<h3 className="font-medium">Email</h3>
 									<a
-										href="mailto:support@tow.center"
+										href="mailto:hookups@tow.center"
 										className="text-muted-foreground hover:text-primary"
 									>
-										support@tow.center
+										hookups@tow.center
 									</a>
 									<p className="mt-1 text-sm text-muted-foreground">
 										We respond within 24 hours
