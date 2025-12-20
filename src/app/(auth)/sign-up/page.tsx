@@ -6,17 +6,21 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { signUp } from "@/lib/auth-client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { authClient, signUp } from "@/lib/auth-client";
 
 export default function SignUpPage() {
 	const router = useRouter();
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [phoneNumber, setPhoneNumber] = useState("");
+	const [otp, setOtp] = useState("");
+	const [otpSent, setOtpSent] = useState(false);
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleEmailSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setError("");
 		setLoading(true);
@@ -41,6 +45,53 @@ export default function SignUpPage() {
 		}
 	};
 
+	const handleSendOtp = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setError("");
+		setLoading(true);
+
+		try {
+			const result = await authClient.phoneNumber.sendOtp({
+				phoneNumber,
+			});
+
+			if (result.error) {
+				setError(result.error.message || "Failed to send code");
+			} else {
+				setOtpSent(true);
+			}
+		} catch {
+			setError("An unexpected error occurred");
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const handleVerifyOtp = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setError("");
+		setLoading(true);
+
+		try {
+			// verify with signUpOnVerification will create a user if they don't exist
+			const result = await authClient.phoneNumber.verify({
+				phoneNumber,
+				code: otp,
+			});
+
+			if (result.error) {
+				setError(result.error.message || "Invalid code");
+			} else {
+				router.push("/dashboard");
+				router.refresh();
+			}
+		} catch {
+			setError("An unexpected error occurred");
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-background px-4">
 			<div className="w-full max-w-md">
@@ -49,68 +100,145 @@ export default function SignUpPage() {
 					<p className="mt-2 text-muted-foreground">Create your account</p>
 				</div>
 
-				<form
-					onSubmit={handleSubmit}
-					className="rounded-lg border border-border bg-card p-8 shadow-sm"
-				>
+				<div className="rounded-lg border border-border bg-card p-8 shadow-sm">
 					{error && (
 						<div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
 							{error}
 						</div>
 					)}
 
-					<div className="space-y-4">
-						<div>
-							<Label htmlFor="name">Name</Label>
-							<Input
-								id="name"
-								type="text"
-								value={name}
-								onChange={(e) => setName(e.target.value)}
-								required
-								placeholder="John Doe"
-								className="mt-1"
-							/>
-						</div>
+					<Tabs defaultValue="email" className="w-full">
+						<TabsList className="grid w-full grid-cols-2">
+							<TabsTrigger value="email">Email</TabsTrigger>
+							<TabsTrigger value="phone">Phone</TabsTrigger>
+						</TabsList>
 
-						<div>
-							<Label htmlFor="email">Email</Label>
-							<Input
-								id="email"
-								type="email"
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								required
-								placeholder="you@example.com"
-								className="mt-1"
-							/>
-						</div>
+						<TabsContent value="email">
+							<form onSubmit={handleEmailSubmit} className="space-y-4">
+								<div>
+									<Label htmlFor="name">Name</Label>
+									<Input
+										id="name"
+										type="text"
+										value={name}
+										onChange={(e) => setName(e.target.value)}
+										required
+										placeholder="John Doe"
+										className="mt-1"
+									/>
+								</div>
 
-						<div>
-							<Label htmlFor="password">Password</Label>
-							<Input
-								id="password"
-								type="password"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								required
-								minLength={8}
-								placeholder="At least 8 characters"
-								className="mt-1"
-							/>
-						</div>
-					</div>
+								<div>
+									<Label htmlFor="email">Email</Label>
+									<Input
+										id="email"
+										type="email"
+										value={email}
+										onChange={(e) => setEmail(e.target.value)}
+										required
+										placeholder="you@example.com"
+										className="mt-1"
+									/>
+								</div>
 
-					<Button
-						type="submit"
-						disabled={loading}
-						className="mt-6 w-full"
-						size="lg"
-					>
-						{loading ? "Creating account..." : "Create account"}
-					</Button>
+								<div>
+									<Label htmlFor="password">Password</Label>
+									<Input
+										id="password"
+										type="password"
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
+										required
+										minLength={8}
+										placeholder="At least 8 characters"
+										className="mt-1"
+									/>
+								</div>
 
-					<p className="mt-4 text-center text-sm text-muted-foreground">
+								<Button
+									type="submit"
+									disabled={loading}
+									className="w-full"
+									size="lg"
+								>
+									{loading ? "Creating account..." : "Create account"}
+								</Button>
+							</form>
+						</TabsContent>
+
+						<TabsContent value="phone">
+							{!otpSent ? (
+								<form onSubmit={handleSendOtp} className="space-y-4">
+									<div>
+										<Label htmlFor="phone">Phone Number</Label>
+										<Input
+											id="phone"
+											type="tel"
+											value={phoneNumber}
+											onChange={(e) => setPhoneNumber(e.target.value)}
+											required
+											placeholder="+1 555 123 4567"
+											className="mt-1"
+										/>
+										<p className="mt-1 text-xs text-muted-foreground">
+											Include country code (e.g., +1 for US)
+										</p>
+									</div>
+
+									<Button
+										type="submit"
+										disabled={loading}
+										className="w-full"
+										size="lg"
+									>
+										{loading ? "Sending..." : "Send verification code"}
+									</Button>
+								</form>
+							) : (
+								<form onSubmit={handleVerifyOtp} className="space-y-4">
+									<div>
+										<Label htmlFor="otp">Verification Code</Label>
+										<Input
+											id="otp"
+											type="text"
+											value={otp}
+											onChange={(e) => setOtp(e.target.value)}
+											required
+											placeholder="123456"
+											className="mt-1"
+											maxLength={6}
+										/>
+										<p className="mt-1 text-xs text-muted-foreground">
+											Enter the 6-digit code sent to {phoneNumber}
+										</p>
+									</div>
+
+									<Button
+										type="submit"
+										disabled={loading}
+										className="w-full"
+										size="lg"
+									>
+										{loading ? "Verifying..." : "Verify and create account"}
+									</Button>
+
+									<Button
+										type="button"
+										variant="ghost"
+										className="w-full"
+										onClick={() => {
+											setOtpSent(false);
+											setOtp("");
+										}}
+									>
+										Use different number
+									</Button>
+								</form>
+							)}
+						</TabsContent>
+					</Tabs>
+
+					<p className="mt-6 text-center text-sm text-muted-foreground">
 						Already have an account?{" "}
 						<Link
 							href="/sign-in"
@@ -119,7 +247,7 @@ export default function SignUpPage() {
 							Sign in
 						</Link>
 					</p>
-				</form>
+				</div>
 
 				<p className="mt-6 text-center text-xs text-muted-foreground">
 					Alpha program: Free for 3 months, then $49/mo locked for life

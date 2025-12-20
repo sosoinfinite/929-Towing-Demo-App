@@ -7,6 +7,7 @@ import {
 	IconNotification,
 	IconUserCircle,
 } from "@tabler/icons-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -39,9 +40,14 @@ export function NavUser({
 	const router = useRouter();
 
 	const handleSignOut = async () => {
-		await signOut();
-		router.push("/");
-		router.refresh();
+		await signOut({
+			fetchOptions: {
+				onSuccess: () => {
+					router.push("/");
+					router.refresh();
+				},
+			},
+		});
 	};
 
 	// Get initials for avatar fallback
@@ -102,17 +108,23 @@ export function NavUser({
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem>
-								<IconUserCircle />
-								Account
+							<DropdownMenuItem asChild>
+								<Link href="/dashboard/account">
+									<IconUserCircle />
+									Account
+								</Link>
 							</DropdownMenuItem>
-							<DropdownMenuItem>
-								<IconCreditCard />
-								Billing
+							<DropdownMenuItem asChild>
+								<Link href="/dashboard/billing">
+									<IconCreditCard />
+									Billing
+								</Link>
 							</DropdownMenuItem>
-							<DropdownMenuItem>
-								<IconNotification />
-								Notifications
+							<DropdownMenuItem asChild>
+								<Link href="/dashboard/notifications">
+									<IconNotification />
+									Notifications
+								</Link>
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />

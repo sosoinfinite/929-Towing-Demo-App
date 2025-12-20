@@ -1,12 +1,13 @@
 import { render } from "@react-email/components";
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
-import { admin, organization } from "better-auth/plugins";
+import { admin, organization, phoneNumber } from "better-auth/plugins";
 import ResetPasswordEmail from "../../emails/reset-password";
 import TeamInvitationEmail from "../../emails/team-invitation";
 import VerificationEmail from "../../emails/verification";
 import { pool } from "./db";
 import { FROM_EMAIL, getResend } from "./email";
+import { sendSMS } from "./twilio";
 
 export const auth = betterAuth({
 	database: pool,
@@ -92,6 +93,15 @@ export const auth = betterAuth({
 					subject: `You've been invited to join ${data.organization.name} on tow.center`,
 					html,
 				});
+			},
+		}),
+		phoneNumber({
+			sendOTP: async ({ phoneNumber: phone, code }) => {
+				// Don't await - prevents timing attacks
+				sendSMS(phone, `Your tow.center verification code is: ${code}`);
+			},
+			signUpOnVerification: {
+				getTempEmail: (phone) => `${phone.replace(/\+/g, "")}@phone.tow.center`,
 			},
 		}),
 	],
