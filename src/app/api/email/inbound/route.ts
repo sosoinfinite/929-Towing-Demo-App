@@ -180,6 +180,37 @@ export async function POST(request: NextRequest) {
 			} else {
 				console.warn("No company found for dispatch email routing");
 			}
+		} else if (toAddress.toLowerCase().includes("hookups@")) {
+			// Sales lead email - create a lead record
+			console.log(`Sales lead email received from ${data.from}: ${data.subject}`);
+
+			try {
+				const leadId = `lead_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+				// Extract name from email address if possible (e.g., "John Doe <john@example.com>")
+				const fromMatch = data.from.match(/^(.+?)\s*<(.+)>$/);
+				const fromName = fromMatch ? fromMatch[1].trim() : null;
+				const fromEmail = fromMatch ? fromMatch[2] : data.from;
+
+				// Create body preview (first 500 chars)
+				const bodyPreview = (data.text || data.html || "").slice(0, 500);
+
+				await pool.query(
+					`INSERT INTO lead (id, email_id, from_email, from_name, subject, body_preview, status, created_at)
+					 VALUES ($1, $2, $3, $4, $5, $6, 'new', NOW())`,
+					[leadId, emailId, fromEmail, fromName, data.subject, bodyPreview],
+				);
+
+				// Mark email as processed
+				await pool.query(
+					"UPDATE inbound_email SET processed = true WHERE id = $1",
+					[emailId],
+				);
+
+				console.log(`Created sales lead: ${leadId}`);
+			} catch (leadError) {
+				console.error("Error creating sales lead:", leadError);
+			}
 		} else if (toAddress.toLowerCase().includes("support@")) {
 			// Support email - just log, don't auto-process
 			console.log(`Support email received from ${data.from}: ${data.subject}`);

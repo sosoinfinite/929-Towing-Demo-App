@@ -3,6 +3,7 @@
 import {
 	IconBuilding,
 	IconDashboard,
+	IconMail,
 	IconPhone,
 	IconSettings,
 	IconShield,
@@ -35,6 +36,11 @@ const navMain = [
 		title: "Overview",
 		url: "/admin",
 		icon: IconDashboard,
+	},
+	{
+		title: "Leads",
+		url: "/admin/leads",
+		icon: IconMail,
 	},
 	{
 		title: "Companies",

@@ -198,4 +198,24 @@ CREATE INDEX IF NOT EXISTS idx_inbound_email_processed ON inbound_email(processe
 -- Driver profile indexes
 CREATE INDEX IF NOT EXISTS idx_driver_profile_company ON driver_profile(company_id);
 CREATE INDEX IF NOT EXISTS idx_driver_profile_phone ON driver_profile(phone);
+
+-- Sales leads (inbound emails to hookups@support.center)
+CREATE TABLE IF NOT EXISTS lead (
+  id TEXT PRIMARY KEY,
+  email_id TEXT REFERENCES inbound_email(id),
+  from_email TEXT NOT NULL,
+  from_name TEXT,
+  subject TEXT,
+  body_preview TEXT,
+  status TEXT NOT NULL DEFAULT 'new',  -- new, contacted, qualified, converted, rejected
+  notes TEXT,
+  assigned_to TEXT REFERENCES "user"(id),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Lead indexes
+CREATE INDEX IF NOT EXISTS idx_lead_status ON lead(status);
+CREATE INDEX IF NOT EXISTS idx_lead_created_at ON lead(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_lead_from_email ON lead(from_email);
 `;
