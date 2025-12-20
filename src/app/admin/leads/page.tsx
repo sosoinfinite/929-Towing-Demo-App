@@ -141,7 +141,7 @@ export default function AdminLeadsPage() {
 						<div>
 							<h1 className="text-2xl font-bold">Sales Leads</h1>
 							<p className="text-muted-foreground">
-								Inbound emails to hookups@support.center
+								Inbound emails to hookups@tow.center
 							</p>
 						</div>
 						<Button variant="outline" size="sm" onClick={fetchLeads}>
@@ -216,7 +216,7 @@ export default function AdminLeadsPage() {
 									</h3>
 									<p className="mt-1 text-center text-sm">
 										Leads will appear here when emails are sent to
-										hookups@support.center
+										hookups@tow.center
 									</p>
 								</div>
 							) : (

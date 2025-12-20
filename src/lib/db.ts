@@ -199,7 +199,7 @@ CREATE INDEX IF NOT EXISTS idx_inbound_email_processed ON inbound_email(processe
 CREATE INDEX IF NOT EXISTS idx_driver_profile_company ON driver_profile(company_id);
 CREATE INDEX IF NOT EXISTS idx_driver_profile_phone ON driver_profile(phone);
 
--- Sales leads (inbound emails to hookups@support.center)
+-- Sales leads (inbound emails to hookups@tow.center)
 CREATE TABLE IF NOT EXISTS lead (
   id TEXT PRIMARY KEY,
   email_id TEXT REFERENCES inbound_email(id),
