@@ -9,13 +9,14 @@ import {
 	IconTrash,
 	IconUserPlus,
 } from "@tabler/icons-react";
-import Link from "next/link";
 import type {
 	Invitation,
 	Member,
 	Organization,
 } from "better-auth/plugins/organization";
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ImagePicker } from "@/components/image-picker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -253,20 +254,22 @@ export default function SettingsPage() {
 						{/* Account & Security Link */}
 						<Link href="/dashboard/account">
 							<Card className="transition-colors hover:bg-muted/50">
-								<CardContent className="flex items-center justify-between p-4">
+								<CardHeader className="flex flex-row items-center justify-between space-y-0">
 									<div className="flex items-center gap-4">
 										<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
 											<IconShieldLock className="h-5 w-5 text-primary" />
 										</div>
 										<div>
-											<p className="font-medium">Account & Security</p>
-											<p className="text-sm text-muted-foreground">
+											<CardTitle className="text-base">
+												Account & Security
+											</CardTitle>
+											<CardDescription>
 												Profile, password, passkeys, two-factor authentication
-											</p>
+											</CardDescription>
 										</div>
 									</div>
 									<IconChevronRight className="h-5 w-5 text-muted-foreground" />
-								</CardContent>
+								</CardHeader>
 							</Card>
 						</Link>
 
@@ -303,14 +306,8 @@ export default function SettingsPage() {
 									</p>
 								</div>
 								<div className="space-y-2">
-									<Label htmlFor="logo">Company Logo URL</Label>
-									<Input
-										id="logo"
-										type="url"
-										value={logo}
-										onChange={(e) => setLogo(e.target.value)}
-										placeholder="https://example.com/logo.png"
-									/>
+									<Label>Company Logo</Label>
+									<ImagePicker value={logo} onChange={setLogo} />
 									<p className="text-xs text-muted-foreground">
 										Your logo will appear in the dashboard sidebar
 									</p>

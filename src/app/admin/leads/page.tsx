@@ -135,7 +135,7 @@ export default function AdminLeadsPage() {
 	// Fetch messages for selected lead
 	const { data: messagesData, isLoading: loadingMessages } = useQuery({
 		queryKey: ["lead-messages", selectedLead?.id],
-		queryFn: () => fetchMessages(selectedLead!.id),
+		queryFn: () => fetchMessages(selectedLead?.id ?? ""),
 		enabled: !!selectedLead,
 	});
 
@@ -146,7 +146,10 @@ export default function AdminLeadsPage() {
 		mutationFn: async ({
 			leadId,
 			status,
-		}: { leadId: string; status: string }) => {
+		}: {
+			leadId: string;
+			status: string;
+		}) => {
 			const res = await fetch("/api/admin/leads", {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
@@ -162,7 +165,13 @@ export default function AdminLeadsPage() {
 
 	// Save notes mutation
 	const saveNotesMutation = useMutation({
-		mutationFn: async ({ leadId, notes }: { leadId: string; notes: string }) => {
+		mutationFn: async ({
+			leadId,
+			notes,
+		}: {
+			leadId: string;
+			notes: string;
+		}) => {
 			const res = await fetch("/api/admin/leads", {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
@@ -182,7 +191,11 @@ export default function AdminLeadsPage() {
 			leadId,
 			subject,
 			message,
-		}: { leadId: string; subject: string; message: string }) => {
+		}: {
+			leadId: string;
+			subject: string;
+			message: string;
+		}) => {
 			const res = await fetch(`/api/admin/leads/${leadId}/messages`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -473,7 +486,9 @@ export default function AdminLeadsPage() {
 												Subject: {msg.subject}
 											</div>
 										)}
-										<div className="text-sm whitespace-pre-wrap">{msg.body}</div>
+										<div className="text-sm whitespace-pre-wrap">
+											{msg.body}
+										</div>
 									</div>
 								))
 							)}
