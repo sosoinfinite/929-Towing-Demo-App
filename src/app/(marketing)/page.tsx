@@ -1,10 +1,13 @@
 import {
 	ArrowRight,
+	Briefcase,
 	Check,
 	Clock,
 	DollarSign,
+	Mail,
 	MessageSquare,
 	Phone,
+	Users,
 	X,
 	Zap,
 } from "lucide-react";
@@ -56,6 +59,9 @@ export default async function LandingPage() {
 				"Instant price quotes",
 				"SMS job notifications",
 				"Real-time dispatch",
+				"Motor club email parsing",
+				"2-way SMS with drivers",
+				"Unified jobs dashboard",
 			],
 		},
 		{
@@ -288,11 +294,11 @@ export default async function LandingPage() {
 							id="features-heading"
 							className="text-center text-3xl font-bold text-foreground sm:text-4xl"
 						>
-							More Than Just An Answering Service
+							Complete Dispatch Automation
 						</h2>
 						<p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">
-							tow.center is a virtual dispatcher that actually understands
-							towing.
+							tow.center handles calls, emails, and SMS so you can focus on
+							driving.
 						</p>
 
 						<div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -301,12 +307,68 @@ export default async function LandingPage() {
 									<div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
 										<Zap className="h-5 w-5 text-primary" />
 									</div>
-									<CardTitle>Instant Call Answering</CardTitle>
+									<CardTitle>AI Voice Dispatch</CardTitle>
 								</CardHeader>
 								<CardContent className="text-muted-foreground">
-									Every call answered in under 2 seconds. No hold music, no
-									&quot;please hold while I transfer you.&quot; Just instant,
-									professional service.
+									Every call answered in under 2 seconds. Natural voice AI
+									collects details, quotes your rates, and dispatches the job to
+									you via SMS.
+								</CardContent>
+							</Card>
+
+							<Card>
+								<CardHeader>
+									<div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+										<Mail className="h-5 w-5 text-primary" />
+									</div>
+									<CardTitle>Motor Club Email Parsing</CardTitle>
+								</CardHeader>
+								<CardContent className="text-muted-foreground">
+									AI automatically parses dispatch emails from AAA, Agero,
+									Urgently, Swoop, and Honk. Jobs are created instantly with all
+									details extracted.
+								</CardContent>
+							</Card>
+
+							<Card>
+								<CardHeader>
+									<div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+										<MessageSquare className="h-5 w-5 text-primary" />
+									</div>
+									<CardTitle>2-Way SMS Communication</CardTitle>
+								</CardHeader>
+								<CardContent className="text-muted-foreground">
+									Drivers text &quot;OTW&quot; or &quot;arrived&quot; to update
+									job status. Customers get automatic notifications. Full
+									message history for every job.
+								</CardContent>
+							</Card>
+
+							<Card>
+								<CardHeader>
+									<div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+										<Briefcase className="h-5 w-5 text-primary" />
+									</div>
+									<CardTitle>Unified Jobs Dashboard</CardTitle>
+								</CardHeader>
+								<CardContent className="text-muted-foreground">
+									All jobs from calls, emails, SMS, and manual entry in one
+									place. Track status from pending to completed. Assign drivers
+									with one click.
+								</CardContent>
+							</Card>
+
+							<Card>
+								<CardHeader>
+									<div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+										<Users className="h-5 w-5 text-primary" />
+									</div>
+									<CardTitle>Driver Management</CardTitle>
+								</CardHeader>
+								<CardContent className="text-muted-foreground">
+									Add your drivers with their phone numbers. Assign jobs and
+									notify them via SMS. Track who&apos;s on which job in
+									real-time.
 								</CardContent>
 							</Card>
 
@@ -323,19 +385,74 @@ export default async function LandingPage() {
 									bookings.
 								</CardContent>
 							</Card>
+						</div>
+					</div>
+				</section>
 
-							<Card>
-								<CardHeader>
-									<div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-										<Phone className="h-5 w-5 text-primary" />
-									</div>
-									<CardTitle>Job Details via SMS</CardTitle>
-								</CardHeader>
-								<CardContent className="text-muted-foreground">
-									After each call, get a text with name, location, vehicle type,
-									and issue. Accept or decline with one tap. No paperwork.
-								</CardContent>
-							</Card>
+				{/* How Motor Club Integration Works */}
+				<section className="border-y border-border bg-muted/30 py-16 sm:py-24">
+					<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+						<div className="text-center mb-12">
+							<h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+								Motor Club Integration
+							</h2>
+							<p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+								Stop manually copying dispatch emails. AI does it for you.
+							</p>
+						</div>
+
+						<div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+							<div className="flex flex-col items-center text-center">
+								<div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-xl">
+									1
+								</div>
+								<h3 className="text-lg font-semibold text-foreground">
+									Email Arrives
+								</h3>
+								<p className="mt-2 text-muted-foreground">
+									AAA, Agero, or other motor club sends a dispatch email to your
+									tow.center address
+								</p>
+							</div>
+
+							<div className="flex flex-col items-center text-center">
+								<div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-xl">
+									2
+								</div>
+								<h3 className="text-lg font-semibold text-foreground">
+									AI Parses Details
+								</h3>
+								<p className="mt-2 text-muted-foreground">
+									Customer name, phone, vehicle, pickup location, service type,
+									and PO number are extracted
+								</p>
+							</div>
+
+							<div className="flex flex-col items-center text-center">
+								<div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-xl">
+									3
+								</div>
+								<h3 className="text-lg font-semibold text-foreground">
+									Job Created
+								</h3>
+								<p className="mt-2 text-muted-foreground">
+									A new job appears in your dashboard ready to be assigned to a
+									driver
+								</p>
+							</div>
+
+							<div className="flex flex-col items-center text-center">
+								<div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-xl">
+									4
+								</div>
+								<h3 className="text-lg font-semibold text-foreground">
+									Driver Notified
+								</h3>
+								<p className="mt-2 text-muted-foreground">
+									Assign a driver and they get an SMS with all job details
+									instantly
+								</p>
+							</div>
 						</div>
 					</div>
 				</section>
