@@ -1,6 +1,6 @@
 import { createSerwistRoute } from "@serwist/turbopack";
 
-export const { GET, HEAD } = createSerwistRoute({
+export const { GET } = createSerwistRoute({
 	swSrc: "/src/app/sw.ts",
 	// Precache configuration
 	precacheRules: {
