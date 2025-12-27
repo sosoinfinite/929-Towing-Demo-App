@@ -26,7 +26,7 @@ export function AIDemo({ agentId }: AIDemoProps) {
 			console.log("[tow.center] Disconnected from AI agent");
 		},
 		onError: (error) => {
-			console.error("[tow.center] Error:", error);
+			console.error("[tow.center] Connection error occurred");
 			setConnectionError(
 				"Unable to connect to AI demo. The demo agent may be unavailable.",
 			);
@@ -67,10 +67,10 @@ export function AIDemo({ agentId }: AIDemoProps) {
 				connectionType: "webrtc",
 			});
 		} catch (error) {
-			console.error("[tow.center] Failed to start session:", error);
+			console.error("[tow.center] Failed to start session");
 			setConnectionError(
-				error instanceof Error
-					? error.message
+				error instanceof Error && error.message
+					? error.message.replace(/key[=:]\s*[^\s]+/gi, "key=***")
 					: "Failed to connect to AI demo. Please try again later.",
 			);
 		}
@@ -80,7 +80,7 @@ export function AIDemo({ agentId }: AIDemoProps) {
 		try {
 			await conversation.endSession();
 		} catch (error) {
-			console.error("[tow.center] Failed to end session:", error);
+			console.error("[tow.center] Failed to end session");
 		}
 	}, [conversation]);
 
