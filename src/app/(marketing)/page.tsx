@@ -15,7 +15,9 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import Script from "next/script";
+import { Suspense } from "react";
 import { HeroSection } from "@/components/hero-section";
+import { ReferralTracker } from "@/components/referral-tracker";
 import { ROICalculator } from "@/components/roi-calculator";
 import { StickyMobileCTA } from "@/components/sticky-mobile-cta";
 import {
@@ -83,6 +85,11 @@ export default async function LandingPage() {
 
 	return (
 		<>
+			{/* Referral Code Tracker - captures ?ref=CODE from URL */}
+			<Suspense fallback={null}>
+				<ReferralTracker />
+			</Suspense>
+
 			{/* Schema.org JSON-LD */}
 			<Script
 				id="json-ld"
