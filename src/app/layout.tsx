@@ -21,6 +21,7 @@ export const metadata: Metadata = {
 	},
 	description: "Never miss a call. AI dispatcher for towing companies.",
 	metadataBase: new URL("https://tow.center"),
+	manifest: "/manifest.json",
 	icons: {
 		icon: [
 			{ url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },

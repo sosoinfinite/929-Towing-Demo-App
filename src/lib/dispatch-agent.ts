@@ -1,4 +1,4 @@
-import { Experimental_Agent as Agent, stepCountIs, tool } from "ai";
+import { stepCountIs, ToolLoopAgent, tool } from "ai";
 import { z } from "zod";
 import { getPool } from "./db";
 import { sendSMS } from "./twilio";
@@ -202,9 +202,9 @@ function createDispatchTools(companyId: string, source: JobSource = "manual") {
 export function createEmailDispatchAgent(companyId: string) {
 	const tools = createDispatchTools(companyId, "email");
 
-	return new Agent({
+	return new ToolLoopAgent({
 		model: "google/gemini-3-flash-preview",
-		system: `You are a dispatch assistant for a towing company.
+		instructions: `You are a dispatch assistant for a towing company.
 Your job is to parse incoming dispatch emails from motor clubs (AAA, Agero, Urgently, Swoop, Honk, etc.) and create jobs.
 
 When parsing an email:
@@ -230,9 +230,9 @@ Be thorough - extract ALL available information from the email.`,
 export function createSmsHandlerAgent(companyId: string) {
 	const tools = createDispatchTools(companyId, "sms");
 
-	return new Agent({
+	return new ToolLoopAgent({
 		model: "google/gemini-3-flash-preview",
-		system: `You are a dispatch assistant handling inbound SMS messages for a towing company.
+		instructions: `You are a dispatch assistant handling inbound SMS messages for a towing company.
 
 Your workflow:
 1. First, use lookupDriver to check if the sender is a known driver

@@ -1,0 +1,36 @@
+{
+	"name": "tow.center - AI-Powered Towing Dispatch",
+	"short_name": "tow.center",
+	"description": "Smart towing dispatch with AI voice assistant - $99/mo with unlimited AI minutes",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#ffffff",
+	"theme_color": "#f97316",
+	"icons": [
+		{
+			"src": "/icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any maskable"
+		},
+		{
+			"src": "/icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any maskable"
+		}
+	],
+	"categories": ["business", "productivity"],
+	"shortcuts": [
+		{
+			"name": "Dashboard",
+			"url": "/dashboard",
+			"description": "View dispatch dashboard"
+		},
+		{
+			"name": "Calls",
+			"url": "/dashboard/calls",
+			"description": "View call history"
+		}
+	]
+}
