@@ -129,6 +129,27 @@ async function setup() {
 		priceIds[plan.id] = price.id;
 	}
 
+	// Create referral coupon
+	console.log("\nSetting up referral coupon...");
+
+	try {
+		const existingCoupon = await stripe.coupons.retrieve("REFERRAL20");
+		console.log(`  Coupon exists: ${existingCoupon.id}`);
+	} catch {
+		// Coupon doesn't exist, create it
+		const coupon = await stripe.coupons.create({
+			id: "REFERRAL20",
+			percent_off: 20,
+			duration: "once",
+			name: "Referral Discount - 20% Off First Month",
+			metadata: {
+				type: "referral",
+				description: "Applied to referred customers on first subscription",
+			},
+		});
+		console.log(`  Created coupon: ${coupon.id}`);
+	}
+
 	console.log("\n✓ Setup complete!\n");
 	console.log("Add these to your .env.local:\n");
 	console.log(`STRIPE_PRICE_ALPHA=${priceIds.alpha}`);
