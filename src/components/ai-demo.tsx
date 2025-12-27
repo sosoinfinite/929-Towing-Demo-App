@@ -60,11 +60,32 @@ export function AIDemo({ agentId }: AIDemoProps) {
 		const permitted = hasPermission || (await requestMicPermission());
 		if (!permitted) return;
 
+		// Calculate time-based greeting (same logic as voice webhook)
+		const hour = new Date().getHours();
+		let greetingTimeBased = "";
+		if (hour >= 6 && hour < 12) {
+			greetingTimeBased = "Good morning! ";
+		} else if (hour >= 12 && hour < 18) {
+			greetingTimeBased = "Good afternoon! ";
+		}
+
 		try {
 			setConnectionError(null);
 			await conversation.startSession({
 				agentId,
 				connectionType: "webrtc",
+				// Pass dynamic variables for demo (these would come from Twilio in real calls)
+				dynamicVariables: {
+					company_name: "929 Towing & Recovery",
+					dispatcher_name: "Brian",
+					company_service_area: "Brooklyn and Queens",
+					greeting_time_based: greetingTimeBased,
+					call_id: `demo_${Date.now()}`,
+					_if_previous_customer: "false",
+					last_service_type: "",
+					last_vehicle_info: "",
+					last_service_date: "",
+				},
 			});
 		} catch (error) {
 			console.error("[tow.center] Failed to start session");

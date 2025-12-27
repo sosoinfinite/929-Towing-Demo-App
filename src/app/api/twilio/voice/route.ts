@@ -72,14 +72,53 @@ export async function POST(request: NextRequest) {
 		});
 	}
 
-	// Connect to ElevenLabs Conversational AI via WebSocket stream
+	// Fetch agent configuration for this company
+	const agentConfigResult = await pool.query(
+		"SELECT dispatcher_name FROM agent_config WHERE company_id = $1 LIMIT 1",
+		[company.id],
+	);
+
+	const agentConfig = agentConfigResult.rows[0];
+	const dispatcherName = agentConfig?.dispatcher_name || "Brian";
+
+	// Check for previous jobs from this caller (repeat customer detection)
+	const normalizedPhone = from.replace(/\D/g, "").slice(-10);
+	const previousJobResult = await pool.query(
+		`SELECT service_type, vehicle_info, created_at
+     FROM job
+     WHERE company_id = $1
+     AND customer_phone LIKE '%' || $2
+     AND status IN ('completed', 'cancelled')
+     ORDER BY created_at DESC
+     LIMIT 1`,
+		[company.id, normalizedPhone],
+	);
+
+	const previousJob = previousJobResult.rows[0];
+
+	// Calculate time-based greeting
+	const hour = new Date().getHours();
+	let greetingTimeBased = "";
+	if (hour >= 6 && hour < 12) {
+		greetingTimeBased = "Good morning! ";
+	} else if (hour >= 12 && hour < 18) {
+		greetingTimeBased = "Good afternoon! ";
+	}
+
+	// Connect to ElevenLabs Conversational AI via WebSocket stream with dynamic variables
 	const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Connect>
     <Stream url="wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${elevenLabsAgentId}">
-      <Parameter name="caller_number" value="${from}"/>
       <Parameter name="company_name" value="${company.name}"/>
+      <Parameter name="dispatcher_name" value="${dispatcherName}"/>
+      <Parameter name="company_service_area" value="${company.service_area || "our service area"}"/>
       <Parameter name="call_id" value="${callId}"/>
+      <Parameter name="greeting_time_based" value="${greetingTimeBased}"/>
+      <Parameter name="_if_previous_customer" value="${previousJob ? "true" : "false"}"/>
+      <Parameter name="last_service_type" value="${previousJob?.service_type || ""}"/>
+      <Parameter name="last_vehicle_info" value="${previousJob?.vehicle_info || ""}"/>
+      <Parameter name="last_service_date" value="${previousJob ? new Date(previousJob.created_at).toLocaleDateString() : ""}"/>
     </Stream>
   </Connect>
 </Response>`;

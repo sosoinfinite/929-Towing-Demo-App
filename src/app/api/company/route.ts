@@ -87,13 +87,14 @@ export async function POST(request: NextRequest) {
 
 	// Create default agent config
 	await pool.query(
-		`INSERT INTO agent_config (id, company_id, elevenlabs_agent_id, greeting_message)
-		 VALUES ($1, $2, $3, $4)`,
+		`INSERT INTO agent_config (id, company_id, elevenlabs_agent_id, greeting_message, dispatcher_name)
+		 VALUES ($1, $2, $3, $4, $5)`,
 		[
 			crypto.randomUUID(),
 			companyId,
 			process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || null,
-			`Hi, thanks for calling ${name}. How can I help you today?`,
+			`Thanks for calling ${name} 24/7 Dispatch. This is Brian. To get a truck to you as quickly as possible, are you in a safe location right now?`,
+			"Brian",
 		],
 	);
 

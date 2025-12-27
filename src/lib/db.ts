@@ -79,9 +79,13 @@ CREATE TABLE IF NOT EXISTS agent_config (
   elevenlabs_agent_id TEXT,
   greeting_message TEXT,
   voice_id TEXT,
+  dispatcher_name TEXT DEFAULT 'Brian',
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Add dispatcher_name column if not exists (for existing databases)
+ALTER TABLE agent_config ADD COLUMN IF NOT EXISTS dispatcher_name TEXT DEFAULT 'Brian';
 
 -- Notification preferences (per-user settings)
 CREATE TABLE IF NOT EXISTS notification_preferences (
