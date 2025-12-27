@@ -4,7 +4,8 @@
       "Skill(feature-dev:feature-dev)",
       "mcp__plugin_stripe_stripe__list_coupons",
       "mcp__plugin_stripe_stripe__search_stripe_documentation",
-      "Bash(stripe coupons create:*)"
+      "Bash(stripe coupons create:*)",
+      "Bash(bun run build:*)"
     ]
   }
 }

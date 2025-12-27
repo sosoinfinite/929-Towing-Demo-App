@@ -260,7 +260,7 @@ export default function ReferralsPage() {
 						</div>
 						{(stats?.balance.pending || 0) > 0 && (
 							<p className="text-xs text-muted-foreground">
-								+{formatCurrency(stats.balance.pending)} pending
+								+{formatCurrency(stats?.balance.pending ?? 0)} pending
 							</p>
 						)}
 					</CardContent>
