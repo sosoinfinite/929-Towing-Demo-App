@@ -9,6 +9,7 @@ const withSerwist = withSerwistInit({
 
 const nextConfig: NextConfig = {
 	reactCompiler: true,
+	turbopack: {}, // Explicitly acknowledge Turbopack (Serwist uses webpack internally)
 };
 
 export default withSerwist(nextConfig);
