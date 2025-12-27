@@ -15,16 +15,21 @@ interface AIDemoProps {
 export function AIDemo({ agentId }: AIDemoProps) {
 	const [hasPermission, setHasPermission] = useState(false);
 	const [permissionDenied, setPermissionDenied] = useState(false);
+	const [connectionError, setConnectionError] = useState<string | null>(null);
 
 	const conversation = useConversation({
 		onConnect: () => {
 			console.log("[tow.center] Connected to AI agent");
+			setConnectionError(null);
 		},
 		onDisconnect: () => {
 			console.log("[tow.center] Disconnected from AI agent");
 		},
 		onError: (error) => {
 			console.error("[tow.center] Error:", error);
+			setConnectionError(
+				"Unable to connect to AI demo. The demo agent may be unavailable.",
+			);
 		},
 	});
 
@@ -46,6 +51,9 @@ export function AIDemo({ agentId }: AIDemoProps) {
 	const handleStartCall = useCallback(async () => {
 		if (!agentId) {
 			console.error("[tow.center] No agent ID configured");
+			setConnectionError(
+				"Demo not configured. Please contact support to set up the AI agent.",
+			);
 			return;
 		}
 
@@ -53,12 +61,18 @@ export function AIDemo({ agentId }: AIDemoProps) {
 		if (!permitted) return;
 
 		try {
+			setConnectionError(null);
 			await conversation.startSession({
 				agentId,
 				connectionType: "webrtc",
 			});
 		} catch (error) {
 			console.error("[tow.center] Failed to start session:", error);
+			setConnectionError(
+				error instanceof Error
+					? error.message
+					: "Failed to connect to AI demo. Please try again later.",
+			);
 		}
 	}, [agentId, hasPermission, requestMicPermission, conversation]);
 
@@ -192,7 +206,7 @@ export function AIDemo({ agentId }: AIDemoProps) {
 				)}
 
 				{/* Permission denied message */}
-				{permissionDenied && (
+				{permissionDenied && !connectionError && (
 					<motion.div
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
@@ -206,6 +220,26 @@ export function AIDemo({ agentId }: AIDemoProps) {
 							className="text-destructive"
 						>
 							Try again
+						</Button>
+					</motion.div>
+				)}
+
+				{/* Connection error message */}
+				{connectionError && (
+					<motion.div
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-center text-sm"
+					>
+						<p className="text-destructive font-medium">Connection Error</p>
+						<p className="text-destructive/80 mt-1">{connectionError}</p>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setConnectionError(null)}
+							className="mt-3 text-destructive border-destructive/30 hover:bg-destructive/10"
+						>
+							Dismiss
 						</Button>
 					</motion.div>
 				)}
