@@ -38,6 +38,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 					FORGOT_PASSWORD: "forgot-password",
 					RESET_PASSWORD: "reset-password",
 					TWO_FACTOR: "two-factor",
+					MAGIC_LINK: "magic-link",
 				}}
 			>
 				{children}
