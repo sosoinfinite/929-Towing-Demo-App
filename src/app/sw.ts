@@ -18,19 +18,15 @@ const serwist = new Serwist({
 	runtimeCaching: [
 		// External APIs - never cache, always fetch from network
 		{
-			urlPattern: /^https:\/\/.*\.elevenlabs\.io\/.*/,
+			matcher: ({ url }) => url.hostname.includes("elevenlabs.io"),
 			handler: new NetworkOnly(),
 		},
 		{
-			urlPattern: /^https:\/\/api\.elevenlabs\.io\/.*/,
+			matcher: ({ url }) => url.hostname.includes("twilio.com"),
 			handler: new NetworkOnly(),
 		},
 		{
-			urlPattern: /^https:\/\/.*\.twilio\.com\/.*/,
-			handler: new NetworkOnly(),
-		},
-		{
-			urlPattern: /^https:\/\/api\.stripe\.com\/.*/,
+			matcher: ({ url }) => url.hostname.includes("stripe.com"),
 			handler: new NetworkOnly(),
 		},
 		// Default caching strategies for everything else
