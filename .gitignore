@@ -42,7 +42,7 @@ yarn-error.log*
 next-env.d.ts
 .env*.local
 
-# PWA
+# PWA (disabled - no service worker)
 public/sw.js
 public/sw.js.map
 public/workbox-*.js
