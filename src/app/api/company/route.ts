@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getPool } from "@/lib/db";
+import { getUserCode } from "@/lib/referral";
 
 // Get current user's company
 export async function GET() {
@@ -97,6 +98,28 @@ export async function POST(request: NextRequest) {
 			"Brian",
 		],
 	);
+
+	// Link referral attribution to this company (if user was referred)
+	const referralResult = await pool.query(
+		`SELECT id FROM referral
+		 WHERE referred_user_id = $1 AND status = 'signed_up'`,
+		[session.user.id],
+	);
+
+	if (referralResult.rows[0]) {
+		await pool.query(
+			`UPDATE referral
+			 SET referred_company_id = $1,
+			     company_created_at = NOW(),
+			     status = 'company_created',
+			     updated_at = NOW()
+			 WHERE id = $2`,
+			[companyId, referralResult.rows[0].id],
+		);
+	}
+
+	// Auto-generate referral code for this new company owner
+	await getUserCode(session.user.id, companyId);
 
 	const companyResult = await pool.query(
 		"SELECT * FROM company WHERE id = $1",
