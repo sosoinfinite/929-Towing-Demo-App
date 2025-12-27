@@ -321,8 +321,8 @@ export async function getCreditBalance(
 		 FROM referral_credit
 		 WHERE user_id = $1
 		 AND type = 'earned'
-		 AND created_at > NOW() - INTERVAL $2`,
-		[userId, `${holdDays} days`],
+		 AND created_at > NOW() - INTERVAL '1 day' * $2`,
+		[userId, holdDays],
 	);
 
 	// Get totals
