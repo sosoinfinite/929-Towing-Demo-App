@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Check,
 	Copy,
@@ -10,7 +11,7 @@ import {
 	UserPlus,
 	Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,62 +62,70 @@ interface Transaction {
 	created_at: string;
 }
 
+async function fetchStats(): Promise<ReferralStats> {
+	const res = await fetch("/api/referral/me");
+	if (!res.ok) throw new Error("Failed to fetch stats");
+	return res.json();
+}
+
+async function fetchReferrals(): Promise<Referral[]> {
+	const res = await fetch("/api/referral/referrals");
+	if (!res.ok) throw new Error("Failed to fetch referrals");
+	const data = await res.json();
+	return data.referrals || [];
+}
+
+async function fetchCredits(): Promise<Transaction[]> {
+	const res = await fetch("/api/referral/credits");
+	if (!res.ok) throw new Error("Failed to fetch credits");
+	const data = await res.json();
+	return data.transactions || [];
+}
+
+async function generateReferralCode(): Promise<{
+	success: boolean;
+	code: string;
+	referralUrl: string;
+}> {
+	const res = await fetch("/api/referral/generate-code", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({}),
+	});
+	if (!res.ok) throw new Error("Failed to generate code");
+	return res.json();
+}
+
 export default function ReferralsPage() {
-	const [stats, setStats] = useState<ReferralStats | null>(null);
-	const [referrals, setReferrals] = useState<Referral[]>([]);
-	const [transactions, setTransactions] = useState<Transaction[]>([]);
-	const [loading, setLoading] = useState(true);
+	const queryClient = useQueryClient();
 	const [copied, setCopied] = useState(false);
-	const [generating, setGenerating] = useState(false);
 
-	useEffect(() => {
-		async function fetchData() {
-			try {
-				const [statsRes, referralsRes, creditsRes] = await Promise.all([
-					fetch("/api/referral/me"),
-					fetch("/api/referral/referrals"),
-					fetch("/api/referral/credits"),
-				]);
+	const {
+		data: stats,
+		isLoading: statsLoading,
+		error: statsError,
+	} = useQuery({
+		queryKey: ["referral", "stats"],
+		queryFn: fetchStats,
+	});
 
-				const statsData = await statsRes.json();
-				const referralsData = await referralsRes.json();
-				const creditsData = await creditsRes.json();
+	const { data: referrals = [] } = useQuery({
+		queryKey: ["referral", "referrals"],
+		queryFn: fetchReferrals,
+	});
 
-				setStats(statsData);
-				setReferrals(referralsData.referrals || []);
-				setTransactions(creditsData.transactions || []);
-			} catch (error) {
-				console.error("Failed to fetch referral data:", error);
-			} finally {
-				setLoading(false);
-			}
-		}
+	const { data: transactions = [] } = useQuery({
+		queryKey: ["referral", "credits"],
+		queryFn: fetchCredits,
+	});
 
-		fetchData();
-	}, []);
-
-	async function generateCode() {
-		setGenerating(true);
-		try {
-			const response = await fetch("/api/referral/generate-code", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({}),
-			});
-			const data = await response.json();
-			if (data.success) {
-				setStats((prev) =>
-					prev
-						? { ...prev, code: data.code, referralUrl: data.referralUrl }
-						: null,
-				);
-			}
-		} catch (error) {
-			console.error("Failed to generate code:", error);
-		} finally {
-			setGenerating(false);
-		}
-	}
+	const generateMutation = useMutation({
+		mutationFn: generateReferralCode,
+		onSuccess: () => {
+			// Invalidate and refetch stats after generating code
+			queryClient.invalidateQueries({ queryKey: ["referral", "stats"] });
+		},
+	});
 
 	function copyToClipboard() {
 		if (stats?.referralUrl) {
@@ -139,18 +148,24 @@ export default function ReferralsPage() {
 	}
 
 	function getStatusBadge(status: string) {
-		const variants: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
+		const variants: Record<
+			string,
+			{ label: string; variant: "default" | "secondary" | "outline" | "destructive" }
+		> = {
 			clicked: { label: "Clicked", variant: "outline" },
 			signed_up: { label: "Signed Up", variant: "secondary" },
 			company_created: { label: "Company Created", variant: "secondary" },
 			subscribed: { label: "Subscribed", variant: "default" },
 			credited: { label: "Credited", variant: "default" },
 		};
-		const config = variants[status] || { label: status, variant: "outline" as const };
+		const config = variants[status] || {
+			label: status,
+			variant: "outline" as const,
+		};
 		return <Badge variant={config.variant}>{config.label}</Badge>;
 	}
 
-	if (loading) {
+	if (statsLoading) {
 		return (
 			<div className="flex-1 p-6">
 				<div className="animate-pulse space-y-6">
@@ -160,6 +175,16 @@ export default function ReferralsPage() {
 							<div key={i} className="h-32 bg-muted rounded-lg" />
 						))}
 					</div>
+				</div>
+			</div>
+		);
+	}
+
+	if (statsError) {
+		return (
+			<div className="flex-1 p-6">
+				<div className="text-center text-destructive">
+					Failed to load referral data. Please try again.
 				</div>
 			</div>
 		);
@@ -208,8 +233,13 @@ export default function ReferralsPage() {
 							</Button>
 						</div>
 					) : (
-						<Button onClick={generateCode} disabled={generating}>
-							{generating ? "Generating..." : "Generate Your Referral Code"}
+						<Button
+							onClick={() => generateMutation.mutate()}
+							disabled={generateMutation.isPending}
+						>
+							{generateMutation.isPending
+								? "Generating..."
+								: "Generate Your Referral Code"}
 						</Button>
 					)}
 				</CardContent>
@@ -223,7 +253,7 @@ export default function ReferralsPage() {
 						<MousePointer className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{stats?.clicks || 0}</div>
+						<div className="text-2xl font-bold">{stats?.clicks ?? 0}</div>
 					</CardContent>
 				</Card>
 
@@ -233,7 +263,7 @@ export default function ReferralsPage() {
 						<UserPlus className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{stats?.signups || 0}</div>
+						<div className="text-2xl font-bold">{stats?.signups ?? 0}</div>
 					</CardContent>
 				</Card>
 
@@ -243,7 +273,7 @@ export default function ReferralsPage() {
 						<TrendingUp className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{stats?.conversions || 0}</div>
+						<div className="text-2xl font-bold">{stats?.conversions ?? 0}</div>
 					</CardContent>
 				</Card>
 
@@ -256,11 +286,11 @@ export default function ReferralsPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold text-primary">
-							{formatCurrency(stats?.balance.available || 0)}
+							{formatCurrency(stats?.balance?.available ?? 0)}
 						</div>
-						{(stats?.balance.pending || 0) > 0 && (
+						{(stats?.balance?.pending ?? 0) > 0 && (
 							<p className="text-xs text-muted-foreground">
-								+{formatCurrency(stats?.balance.pending ?? 0)} pending
+								+{formatCurrency(stats?.balance?.pending ?? 0)} pending
 							</p>
 						)}
 					</CardContent>

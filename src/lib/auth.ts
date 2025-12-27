@@ -164,7 +164,7 @@ export const auth = betterAuth({
 			rpName: "tow.center",
 			origin:
 				process.env.NODE_ENV === "production"
-					? "https://tow.center"
+					? ["https://tow.center", "https://www.tow.center"]
 					: "http://localhost:3000",
 		}),
 	],
