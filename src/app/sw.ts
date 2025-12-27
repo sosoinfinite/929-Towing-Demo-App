@@ -1,6 +1,6 @@
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
 import { defaultCache } from "@serwist/next/worker";
-import { Serwist } from "serwist";
+import { NetworkOnly, Serwist } from "serwist";
 
 declare global {
 	interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -15,7 +15,27 @@ const serwist = new Serwist({
 	skipWaiting: true,
 	clientsClaim: true,
 	navigationPreload: true,
-	runtimeCaching: defaultCache,
+	runtimeCaching: [
+		// External APIs - never cache, always fetch from network
+		{
+			urlPattern: /^https:\/\/.*\.elevenlabs\.io\/.*/,
+			handler: new NetworkOnly(),
+		},
+		{
+			urlPattern: /^https:\/\/api\.elevenlabs\.io\/.*/,
+			handler: new NetworkOnly(),
+		},
+		{
+			urlPattern: /^https:\/\/.*\.twilio\.com\/.*/,
+			handler: new NetworkOnly(),
+		},
+		{
+			urlPattern: /^https:\/\/api\.stripe\.com\/.*/,
+			handler: new NetworkOnly(),
+		},
+		// Default caching strategies for everything else
+		...defaultCache,
+	],
 });
 
 serwist.addEventListeners();
