@@ -4,9 +4,16 @@ import { useEffect } from "react";
 
 export function ServiceWorkerRegister() {
 	useEffect(() => {
-		if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
-			navigator.serviceWorker.register("/sw.js").catch((error) => {
-				console.error("Service worker registration failed:", error);
+		// Unregister all service workers to prevent caching issues
+		if ("serviceWorker" in navigator) {
+			navigator.serviceWorker.getRegistrations().then((registrations) => {
+				for (const registration of registrations) {
+					registration.unregister().then((success) => {
+						if (success) {
+							console.log("[tow.center] Service worker unregistered");
+						}
+					});
+				}
 			});
 		}
 	}, []);

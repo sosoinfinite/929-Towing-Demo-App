@@ -42,7 +42,8 @@ yarn-error.log*
 next-env.d.ts
 .env*.local
 
-# PWA (generated files only - public/sw.js is manually managed)
+# PWA (disabled - no service worker)
+public/sw.js
 public/sw.js.map
 public/workbox-*.js
 public/workbox-*.js.map
