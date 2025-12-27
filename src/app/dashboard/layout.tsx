@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
+import { ReferralAttribution } from "@/components/referral-attribution";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { isAdmin } from "@/lib/admin";
@@ -30,6 +31,9 @@ export default async function DashboardLayout({
 				} as React.CSSProperties
 			}
 		>
+			{/* Attribute referral on first authenticated load */}
+			<ReferralAttribution />
+
 			<AppSidebar
 				variant="inset"
 				user={{

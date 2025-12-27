@@ -7,6 +7,7 @@ import {
 	IconSettings,
 	IconShield,
 	IconToggleRight,
+	IconUsers,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -47,6 +48,11 @@ const navMain = [
 		title: "Call History",
 		url: "/dashboard/calls",
 		icon: IconHistory,
+	},
+	{
+		title: "Referrals",
+		url: "/dashboard/referrals",
+		icon: IconUsers,
 	},
 ];
 

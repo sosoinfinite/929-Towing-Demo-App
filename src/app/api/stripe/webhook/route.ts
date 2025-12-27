@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getPool } from "@/lib/db";
+import { creditReferrer } from "@/lib/referral";
 import { getStripe } from "@/lib/stripe";
 
 export async function POST(request: NextRequest) {
@@ -39,6 +40,7 @@ export async function POST(request: NextRequest) {
 				const session = event.data.object as Stripe.Checkout.Session;
 				const companyId = session.metadata?.companyId;
 				const planId = session.metadata?.planId || "alpha";
+				const referralId = session.metadata?.referralId;
 
 				if (companyId && session.subscription) {
 					await pool.query(
@@ -59,6 +61,20 @@ export async function POST(request: NextRequest) {
 						],
 					);
 					console.log(`Subscription created for company ${companyId}`);
+
+					// Credit the referrer if this was a referred subscription
+					if (referralId) {
+						const creditResult = await creditReferrer(referralId);
+						if (creditResult.success) {
+							console.log(
+								`Referral credited: ${referralId} -> ${creditResult.creditId}`,
+							);
+						} else {
+							console.log(
+								`Referral credit skipped: ${referralId} - ${creditResult.error}`,
+							);
+						}
+					}
 				}
 				break;
 			}

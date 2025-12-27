@@ -254,4 +254,114 @@ CREATE TABLE IF NOT EXISTS email_template (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- ============================================
+-- REFERRAL SYSTEM TABLES
+-- ============================================
+
+-- Referral codes (unique codes for tracking referrals)
+-- Format: {PREFIX}-{4RANDOM} e.g., 929T-A3F2, JOES-X7K9
+CREATE TABLE IF NOT EXISTS referral_code (
+  id TEXT PRIMARY KEY,
+  code TEXT NOT NULL UNIQUE,
+  user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  company_id TEXT REFERENCES company(id),  -- NULL for affiliates without companies
+  referrer_type TEXT NOT NULL DEFAULT 'customer',  -- customer, affiliate, partner
+  clicks INTEGER DEFAULT 0,
+  signups INTEGER DEFAULT 0,
+  conversions INTEGER DEFAULT 0,
+  total_earned_cents INTEGER DEFAULT 0,
+  active BOOLEAN DEFAULT true,
+  expires_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Referral attribution (tracks referred user journey)
+-- Status flow: clicked → signed_up → company_created → subscribed → credited
+CREATE TABLE IF NOT EXISTS referral (
+  id TEXT PRIMARY KEY,
+  referral_code_id TEXT NOT NULL REFERENCES referral_code(id),
+  referred_user_id TEXT REFERENCES "user"(id),
+  referred_company_id TEXT REFERENCES company(id),
+  status TEXT NOT NULL DEFAULT 'clicked',  -- clicked, signed_up, company_created, subscribed, credited
+  first_click_at TIMESTAMP DEFAULT NOW(),
+  signup_at TIMESTAMP,
+  company_created_at TIMESTAMP,
+  subscription_started_at TIMESTAMP,
+  reward_credited_at TIMESTAMP,
+  discount_applied BOOLEAN DEFAULT false,
+  stripe_coupon_id TEXT,
+  reward_earned_cents INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Referral credit ledger (all credit movements)
+-- Types: earned (from referral), redeemed (applied to invoice), payout (cash withdrawal), expired, adjustment
+CREATE TABLE IF NOT EXISTS referral_credit (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  company_id TEXT REFERENCES company(id),
+  type TEXT NOT NULL,  -- earned, redeemed, payout, expired, adjustment
+  amount_cents INTEGER NOT NULL,  -- positive for earned, negative for spent
+  referral_id TEXT REFERENCES referral(id),
+  payout_id TEXT,  -- references referral_payout(id) when type='payout'
+  balance_after_cents INTEGER NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Referral payout requests (cash withdrawals)
+-- Status flow: pending → processing → completed/failed
+CREATE TABLE IF NOT EXISTS referral_payout (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  amount_cents INTEGER NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',  -- pending, processing, completed, failed
+  method TEXT NOT NULL DEFAULT 'stripe_connect',  -- stripe_connect, paypal, bank_transfer, manual
+  method_details JSONB,  -- Store method-specific info (Stripe account ID, PayPal email, etc.)
+  requested_at TIMESTAMP DEFAULT NOW(),
+  approved_at TIMESTAMP,
+  approved_by TEXT REFERENCES "user"(id),
+  completed_at TIMESTAMP,
+  failure_reason TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Referral system configuration (single row with defaults)
+CREATE TABLE IF NOT EXISTS referral_config (
+  id TEXT PRIMARY KEY DEFAULT 'default',
+  referrer_reward_cents INTEGER DEFAULT 5000,  -- $50 per conversion
+  referred_discount_percent INTEGER DEFAULT 20,  -- 20% off first month
+  reward_trigger TEXT DEFAULT 'subscription_created',  -- subscription_created, first_payment
+  min_payout_cents INTEGER DEFAULT 5000,  -- $50 minimum payout
+  payout_hold_days INTEGER DEFAULT 30,  -- 30-day hold before payout eligible
+  auto_approve_below_cents INTEGER DEFAULT 50000,  -- Auto-approve payouts under $500
+  stripe_coupon_id TEXT DEFAULT 'REFERRAL20',  -- Reusable Stripe coupon
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Insert default config if not exists
+INSERT INTO referral_config (id) VALUES ('default') ON CONFLICT (id) DO NOTHING;
+
+-- Referral system indexes
+CREATE INDEX IF NOT EXISTS idx_referral_code_code ON referral_code(code);
+CREATE INDEX IF NOT EXISTS idx_referral_code_user ON referral_code(user_id);
+CREATE INDEX IF NOT EXISTS idx_referral_code_active ON referral_code(active);
+CREATE INDEX IF NOT EXISTS idx_referral_status ON referral(status);
+CREATE INDEX IF NOT EXISTS idx_referral_code_id ON referral(referral_code_id);
+CREATE INDEX IF NOT EXISTS idx_referral_referred_user ON referral(referred_user_id);
+CREATE INDEX IF NOT EXISTS idx_referral_referred_company ON referral(referred_company_id);
+
+-- Unique constraint: each user can only be referred once
+CREATE UNIQUE INDEX IF NOT EXISTS idx_referral_unique_user ON referral(referred_user_id)
+WHERE referred_user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_referral_credit_user ON referral_credit(user_id);
+CREATE INDEX IF NOT EXISTS idx_referral_credit_type ON referral_credit(type);
+CREATE INDEX IF NOT EXISTS idx_referral_credit_created ON referral_credit(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_referral_payout_user ON referral_payout(user_id);
+CREATE INDEX IF NOT EXISTS idx_referral_payout_status ON referral_payout(status);
 `;
