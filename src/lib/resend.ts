@@ -134,7 +134,7 @@ export async function createContact({
 		source,
 	};
 	if (companyId) {
-		properties.company_id = companyId;
+		properties.company = companyId;
 	}
 
 	try {
