@@ -4,6 +4,7 @@ import {
 	IconCheck,
 	IconMail,
 	IconMailOpened,
+	IconPencil,
 	IconRefresh,
 	IconSend,
 	IconX,
@@ -112,6 +113,12 @@ export default function AdminLeadsPage() {
 	const [replySubject, setReplySubject] = useState("");
 	const [replyMessage, setReplyMessage] = useState("");
 
+	// Compose dialog state
+	const [composeOpen, setComposeOpen] = useState(false);
+	const [composeTo, setComposeTo] = useState("");
+	const [composeSubject, setComposeSubject] = useState("");
+	const [composeMessage, setComposeMessage] = useState("");
+
 	// Fetch leads
 	const {
 		data,
@@ -213,6 +220,33 @@ export default function AdminLeadsPage() {
 		},
 	});
 
+	// Compose email mutation
+	const composeEmailMutation = useMutation({
+		mutationFn: async ({
+			to,
+			subject,
+			message,
+		}: {
+			to: string;
+			subject: string;
+			message: string;
+		}) => {
+			const res = await fetch("/api/admin/email/send", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ to, subject, message }),
+			});
+			if (!res.ok) throw new Error("Failed to send email");
+			return res.json();
+		},
+		onSuccess: () => {
+			setComposeOpen(false);
+			setComposeTo("");
+			setComposeSubject("");
+			setComposeMessage("");
+		},
+	});
+
 	const openLead = (lead: Lead) => {
 		setSelectedLead(lead);
 		setNotes(lead.notes || "");
@@ -240,10 +274,16 @@ export default function AdminLeadsPage() {
 								Inbound emails to hookups@tow.center
 							</p>
 						</div>
-						<Button variant="outline" size="sm" onClick={() => refetch()}>
-							<IconRefresh className="mr-2 h-4 w-4" />
-							Refresh
-						</Button>
+						<div className="flex gap-2">
+							<Button size="sm" onClick={() => setComposeOpen(true)}>
+								<IconPencil className="mr-2 h-4 w-4" />
+								Compose
+							</Button>
+							<Button variant="outline" size="sm" onClick={() => refetch()}>
+								<IconRefresh className="mr-2 h-4 w-4" />
+								Refresh
+							</Button>
+						</div>
 					</div>
 
 					{/* Stats Cards */}
@@ -546,6 +586,79 @@ export default function AdminLeadsPage() {
 									{sendReplyMutation.isPending ? "Sending..." : "Send Reply"}
 								</Button>
 							</div>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
+
+			{/* Compose Email Dialog */}
+			<Dialog open={composeOpen} onOpenChange={setComposeOpen}>
+				<DialogContent className="max-w-lg">
+					<DialogHeader>
+						<DialogTitle>Compose Email</DialogTitle>
+						<DialogDescription>Send from hookups@tow.center</DialogDescription>
+					</DialogHeader>
+
+					<div className="space-y-4">
+						<div className="space-y-2">
+							<label htmlFor="compose-to" className="text-sm font-medium">
+								To
+							</label>
+							<Input
+								id="compose-to"
+								type="email"
+								value={composeTo}
+								onChange={(e) => setComposeTo(e.target.value)}
+								placeholder="recipient@example.com"
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<label htmlFor="compose-subject" className="text-sm font-medium">
+								Subject
+							</label>
+							<Input
+								id="compose-subject"
+								value={composeSubject}
+								onChange={(e) => setComposeSubject(e.target.value)}
+								placeholder="Subject line"
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<label htmlFor="compose-message" className="text-sm font-medium">
+								Message
+							</label>
+							<Textarea
+								id="compose-message"
+								value={composeMessage}
+								onChange={(e) => setComposeMessage(e.target.value)}
+								placeholder="Type your message..."
+								rows={6}
+							/>
+						</div>
+
+						<div className="flex justify-end gap-2">
+							<Button variant="outline" onClick={() => setComposeOpen(false)}>
+								Cancel
+							</Button>
+							<Button
+								onClick={() =>
+									composeEmailMutation.mutate({
+										to: composeTo,
+										subject: composeSubject,
+										message: composeMessage,
+									})
+								}
+								disabled={
+									composeEmailMutation.isPending ||
+									!composeTo.trim() ||
+									!composeMessage.trim()
+								}
+							>
+								<IconSend className="mr-2 h-4 w-4" />
+								{composeEmailMutation.isPending ? "Sending..." : "Send"}
+							</Button>
 						</div>
 					</div>
 				</DialogContent>

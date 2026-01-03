@@ -7,7 +7,11 @@
       "Bash(stripe coupons create:*)",
       "Bash(bun run build:*)",
       "Bash(bunx next build:*)",
-      "WebFetch(domain:resend.com)"
+      "WebFetch(domain:resend.com)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(wc:*)"
     ]
   }
 }
