@@ -2,6 +2,11 @@ import { type NextRequest, NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { getPool } from "@/lib/db";
 import { parseDispatchEmail } from "@/lib/dispatch-agent";
+import {
+	addContactToSegment,
+	createContact,
+	SEGMENT_LEADS,
+} from "@/lib/resend";
 
 // Resend webhook event types
 interface ResendEmailReceivedEvent {
@@ -176,6 +181,26 @@ export async function POST(request: NextRequest) {
 					"UPDATE inbound_email SET processed = true WHERE id = $1",
 					[emailId],
 				);
+
+				// Create Resend contact for the lead
+				createContact({
+					email: fromEmail,
+					firstName: fromName?.split(" ")[0],
+					lastName: fromName?.split(" ").slice(1).join(" "),
+					role: "customer",
+					source: "lead",
+					subscribeToJobUpdates: false,
+					subscribeToMarketing: false, // Opt-out by default for leads
+				})
+					.then(({ exists }) => {
+						if (exists && SEGMENT_LEADS) {
+							// Contact exists, make sure they're in the leads segment
+							addContactToSegment(fromEmail, SEGMENT_LEADS);
+						}
+					})
+					.catch((err) => {
+						console.error("[Resend] Failed to create lead contact:", err);
+					});
 
 				console.log(`Created sales lead: ${leadId} with message: ${messageId}`);
 			} catch (leadError) {

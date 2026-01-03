@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin";
 import { auth } from "@/lib/auth";
 import { getPool } from "@/lib/db";
-import { FROM_EMAIL, getResend } from "@/lib/email";
+import { FROM_EMAIL_SALES, getResend, REPLY_TO_SALES } from "@/lib/resend";
 
 // Get messages for a lead
 export async function GET(
@@ -74,11 +74,11 @@ export async function POST(
 
 	try {
 		const emailResult = await resend.emails.send({
-			from: FROM_EMAIL,
+			from: FROM_EMAIL_SALES,
 			to: lead.from_email,
 			subject: emailSubject,
 			text: message,
-			replyTo: "hookups@tow.center",
+			replyTo: REPLY_TO_SALES,
 		});
 
 		// Store the sent message

@@ -6,6 +6,7 @@ import {
 	IconLoader2,
 	IconMail,
 	IconPhone,
+	IconTruck,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import {
@@ -16,7 +17,10 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
+
+type JobUpdatesChannel = "email" | "sms" | "both" | "none";
 
 interface NotificationSettings {
 	emailNewCalls: boolean;
@@ -24,6 +28,7 @@ interface NotificationSettings {
 	emailWeeklySummary: boolean;
 	smsNewCalls: boolean;
 	smsMissedCalls: boolean;
+	jobUpdatesChannel: JobUpdatesChannel;
 }
 
 export default function NotificationsSettingsPage() {
@@ -33,6 +38,7 @@ export default function NotificationsSettingsPage() {
 		emailWeeklySummary: false,
 		smsNewCalls: false,
 		smsMissedCalls: true,
+		jobUpdatesChannel: "sms",
 	});
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
@@ -48,10 +54,14 @@ export default function NotificationsSettingsPage() {
 			.catch(() => setLoading(false));
 	}, []);
 
-	const updateSetting = async (key: keyof NotificationSettings) => {
+	const updateSetting = async (
+		key: keyof NotificationSettings,
+		value?: boolean | JobUpdatesChannel,
+	) => {
+		const newValue = value !== undefined ? value : !settings[key];
 		const newSettings = {
 			...settings,
-			[key]: !settings[key],
+			[key]: newValue,
 		};
 		setSettings(newSettings);
 		setSaving(true);
@@ -99,6 +109,67 @@ export default function NotificationsSettingsPage() {
 					)}
 				</div>
 			)}
+
+			{/* Job Updates Channel */}
+			<Card>
+				<CardHeader>
+					<div className="flex items-center gap-2">
+						<IconTruck className="h-5 w-5 text-muted-foreground" />
+						<div>
+							<CardTitle>Job Status Updates</CardTitle>
+							<CardDescription>
+								Choose how to receive updates about job status changes
+							</CardDescription>
+						</div>
+					</div>
+				</CardHeader>
+				<CardContent>
+					<RadioGroup
+						value={settings.jobUpdatesChannel}
+						onValueChange={(value) =>
+							updateSetting("jobUpdatesChannel", value as JobUpdatesChannel)
+						}
+						className="space-y-3"
+					>
+						<div className="flex items-center space-x-3 rounded-lg border p-4">
+							<RadioGroupItem value="sms" id="channel-sms" />
+							<Label htmlFor="channel-sms" className="flex-1 cursor-pointer">
+								<div className="font-medium">SMS only</div>
+								<div className="text-sm text-muted-foreground">
+									Receive job updates via text message
+								</div>
+							</Label>
+						</div>
+						<div className="flex items-center space-x-3 rounded-lg border p-4">
+							<RadioGroupItem value="email" id="channel-email" />
+							<Label htmlFor="channel-email" className="flex-1 cursor-pointer">
+								<div className="font-medium">Email only</div>
+								<div className="text-sm text-muted-foreground">
+									Receive job updates via email
+								</div>
+							</Label>
+						</div>
+						<div className="flex items-center space-x-3 rounded-lg border p-4">
+							<RadioGroupItem value="both" id="channel-both" />
+							<Label htmlFor="channel-both" className="flex-1 cursor-pointer">
+								<div className="font-medium">Both email and SMS</div>
+								<div className="text-sm text-muted-foreground">
+									Receive job updates via both channels
+								</div>
+							</Label>
+						</div>
+						<div className="flex items-center space-x-3 rounded-lg border p-4">
+							<RadioGroupItem value="none" id="channel-none" />
+							<Label htmlFor="channel-none" className="flex-1 cursor-pointer">
+								<div className="font-medium">No notifications</div>
+								<div className="text-sm text-muted-foreground">
+									Don&apos;t send job status updates
+								</div>
+							</Label>
+						</div>
+					</RadioGroup>
+				</CardContent>
+			</Card>
 
 			{/* Email Notifications */}
 			<Card>

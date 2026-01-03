@@ -96,10 +96,14 @@ CREATE TABLE IF NOT EXISTS notification_preferences (
   email_weekly_summary BOOLEAN DEFAULT false,
   sms_new_calls BOOLEAN DEFAULT false,
   sms_missed_calls BOOLEAN DEFAULT true,
+  job_updates_channel TEXT DEFAULT 'sms',  -- email, sms, both, none
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(user_id)
 );
+
+-- Add job_updates_channel column if not exists (for existing databases)
+ALTER TABLE notification_preferences ADD COLUMN IF NOT EXISTS job_updates_channel TEXT DEFAULT 'sms';
 
 -- Jobs queue (dispatch requests from email, SMS, phone, manual entry)
 CREATE TABLE IF NOT EXISTS job (

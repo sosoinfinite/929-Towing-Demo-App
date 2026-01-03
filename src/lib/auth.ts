@@ -24,6 +24,7 @@ import {
 	member,
 	owner,
 } from "./permissions";
+import { type ContactRole, createContact } from "./resend";
 import { sendSMS } from "./twilio";
 
 export const auth = betterAuth({
@@ -168,6 +169,29 @@ export const auth = betterAuth({
 					: "http://localhost:3000",
 		}),
 	],
+
+	databaseHooks: {
+		user: {
+			create: {
+				after: async (user) => {
+					// Create Resend contact for new signups
+					const role = (user.role as ContactRole) || "member";
+					createContact({
+						email: user.email,
+						firstName: user.name?.split(" ")[0],
+						lastName: user.name?.split(" ").slice(1).join(" "),
+						role,
+						companyId: user.companyId as string | undefined,
+						source: "signup",
+						subscribeToJobUpdates: true,
+						subscribeToMarketing: false,
+					}).catch((err) => {
+						console.error("[Auth] Failed to create Resend contact:", err);
+					});
+				},
+			},
+		},
+	},
 });
 
 export type Session = typeof auth.$Infer.Session;

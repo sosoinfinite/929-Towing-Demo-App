@@ -1,6 +1,12 @@
 import { stepCountIs, ToolLoopAgent, tool } from "ai";
 import { z } from "zod";
 import { getPool } from "./db";
+import {
+	sendDriverEnRouteNotification,
+	sendJobAssignedNotification,
+	sendJobCompletedNotification,
+	sendJobCreatedNotification,
+} from "./job-notifications";
 import { sendSMS } from "./twilio";
 
 // Types for job and message operations
@@ -31,6 +37,11 @@ function createDispatchTools(companyId: string, source: JobSource = "manual") {
 		inputSchema: z.object({
 			customerName: z.string().optional().describe("Customer name"),
 			customerPhone: z.string().describe("Customer callback phone number"),
+			customerEmail: z
+				.string()
+				.email()
+				.optional()
+				.describe("Customer email address for notifications"),
 			serviceType: z
 				.enum(["tow", "jumpstart", "lockout", "tire", "fuel", "winch", "other"])
 				.describe("Type of service needed"),
@@ -53,14 +64,15 @@ function createDispatchTools(companyId: string, source: JobSource = "manual") {
 		execute: async (params) => {
 			const id = `job_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 			await pool.query(
-				`INSERT INTO job (id, company_id, source, customer_name, customer_phone, service_type, vehicle_info, pickup_location, dropoff_location, motor_club, po_number, notes, status)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'pending')`,
+				`INSERT INTO job (id, company_id, source, customer_name, customer_phone, customer_email, service_type, vehicle_info, pickup_location, dropoff_location, motor_club, po_number, notes, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'pending')`,
 				[
 					id,
 					companyId,
 					source,
 					params.customerName || null,
 					params.customerPhone,
+					params.customerEmail || null,
 					params.serviceType,
 					params.vehicleInfo || null,
 					params.pickupLocation,
@@ -70,6 +82,24 @@ function createDispatchTools(companyId: string, source: JobSource = "manual") {
 					params.notes || null,
 				],
 			);
+
+			// Send job created notification (non-blocking)
+			sendJobCreatedNotification(companyId, {
+				jobId: id,
+				customerPhone: params.customerPhone,
+				customerEmail: params.customerEmail,
+				customerName: params.customerName,
+				serviceType: params.serviceType,
+				pickupLocation: params.pickupLocation,
+				dropoffLocation: params.dropoffLocation,
+				vehicleInfo: params.vehicleInfo,
+			}).catch((err) => {
+				console.error(
+					"[Dispatch] Failed to send job created notification:",
+					err,
+				);
+			});
+
 			return { success: true, jobId: id, message: `Job ${id} created` };
 		},
 	});
@@ -90,10 +120,70 @@ function createDispatchTools(companyId: string, source: JobSource = "manual") {
 				.describe("New status"),
 		}),
 		execute: async ({ jobId, status }) => {
+			// Get job details for notification
+			const jobResult = await pool.query(
+				`SELECT j.*, u.name as driver_name
+				 FROM job j
+				 LEFT JOIN "user" u ON u.id = j.assigned_driver_id
+				 WHERE j.id = $1 AND j.company_id = $2`,
+				[jobId, companyId],
+			);
+			const job = jobResult.rows[0];
+
+			// Update the status
 			await pool.query(
 				"UPDATE job SET status = $1, updated_at = NOW() WHERE id = $2 AND company_id = $3",
 				[status, jobId, companyId],
 			);
+
+			// Send notification based on status change (non-blocking)
+			if (job) {
+				const notificationData = {
+					jobId,
+					customerPhone: job.customer_phone,
+					customerEmail: job.customer_email,
+					customerName: job.customer_name,
+					serviceType: job.service_type || "service",
+					pickupLocation: job.pickup_location || "your location",
+					dropoffLocation: job.dropoff_location,
+					vehicleInfo: job.vehicle_info,
+					driverName: job.driver_name,
+				};
+
+				switch (status) {
+					case "assigned":
+						sendJobAssignedNotification(companyId, notificationData).catch(
+							(err) => {
+								console.error(
+									"[Dispatch] Failed to send assigned notification:",
+									err,
+								);
+							},
+						);
+						break;
+					case "en_route":
+						sendDriverEnRouteNotification(companyId, notificationData).catch(
+							(err) => {
+								console.error(
+									"[Dispatch] Failed to send en_route notification:",
+									err,
+								);
+							},
+						);
+						break;
+					case "completed":
+						sendJobCompletedNotification(companyId, notificationData).catch(
+							(err) => {
+								console.error(
+									"[Dispatch] Failed to send completed notification:",
+									err,
+								);
+							},
+						);
+						break;
+				}
+			}
+
 			return { success: true, jobId, status };
 		},
 	});
@@ -209,15 +299,16 @@ Your job is to parse incoming dispatch emails from motor clubs (AAA, Agero, Urge
 
 When parsing an email:
 1. Extract customer name and callback phone number
-2. Identify the service type (tow, jumpstart, lockout, tire change, fuel delivery, winch)
-3. Extract vehicle information (year, make, model, color, plate if available)
-4. Extract pickup location (be specific with address)
-5. Extract drop-off location if mentioned
-6. Note the motor club name and any PO/reference numbers
-7. Include any special instructions in notes
+2. Extract customer email address if available (important for notifications)
+3. Identify the service type (tow, jumpstart, lockout, tire change, fuel delivery, winch)
+4. Extract vehicle information (year, make, model, color, plate if available)
+5. Extract pickup location (be specific with address)
+6. Extract drop-off location if mentioned
+7. Note the motor club name and any PO/reference numbers
+8. Include any special instructions in notes
 
 Always use the createJob tool to create the job after parsing.
-Be thorough - extract ALL available information from the email.`,
+Be thorough - extract ALL available information from the email, especially contact details like email.`,
 		tools: {
 			createJob: tools.createJob,
 			sendNotification: tools.sendNotification,
