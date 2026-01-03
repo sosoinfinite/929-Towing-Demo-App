@@ -38,9 +38,6 @@ export const REPLY_TO_SALES = "hookups@tow.center";
 /** Reply-to address for dispatch emails */
 export const REPLY_TO_DISPATCH = "dispatch@tow.center";
 
-// Audience configuration from environment
-export const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
-
 // Segment IDs
 export const SEGMENT_CUSTOMERS = process.env.RESEND_SEGMENT_CUSTOMERS;
 export const SEGMENT_DRIVERS = process.env.RESEND_SEGMENT_DRIVERS;
@@ -91,13 +88,6 @@ export async function createContact({
 	exists: boolean;
 	error: Error | null;
 }> {
-	if (!RESEND_AUDIENCE_ID) {
-		console.warn(
-			"[Resend] RESEND_AUDIENCE_ID not configured, skipping contact creation",
-		);
-		return { exists: false, error: null };
-	}
-
 	const resend = getResend();
 
 	// Build segments based on role
@@ -139,7 +129,6 @@ export async function createContact({
 
 	try {
 		const { data, error } = await resend.contacts.create({
-			audienceId: RESEND_AUDIENCE_ID,
 			email,
 			firstName: firstName || undefined,
 			lastName: lastName || undefined,
@@ -172,13 +161,6 @@ export async function updateContactTopics(
 	email: string,
 	topics: { jobUpdates?: boolean; marketing?: boolean; weeklyDigest?: boolean },
 ): Promise<{ success: boolean; error: Error | null }> {
-	if (!RESEND_AUDIENCE_ID) {
-		console.warn(
-			"[Resend] RESEND_AUDIENCE_ID not configured, skipping topic update",
-		);
-		return { success: false, error: null };
-	}
-
 	const resend = getResend();
 
 	const topicUpdates: { id: string; subscription: "opt_in" | "opt_out" }[] = [];
@@ -208,7 +190,6 @@ export async function updateContactTopics(
 
 	try {
 		const { error } = await resend.contacts.update({
-			audienceId: RESEND_AUDIENCE_ID,
 			email,
 			topics: topicUpdates,
 		});
@@ -226,19 +207,12 @@ export async function updateContactTopics(
 }
 
 /**
- * Checks if a contact exists in the audience
+ * Checks if a contact exists
  */
 export async function contactExists(email: string): Promise<boolean> {
-	if (!RESEND_AUDIENCE_ID) {
-		return false;
-	}
-
 	try {
 		const resend = getResend();
-		const { data } = await resend.contacts.get({
-			audienceId: RESEND_AUDIENCE_ID,
-			email,
-		});
+		const { data } = await resend.contacts.get({ email });
 		return !!data;
 	} catch {
 		return false;
@@ -246,24 +220,16 @@ export async function contactExists(email: string): Promise<boolean> {
 }
 
 /**
- * Updates contact properties (role, company_id, etc.)
+ * Updates contact properties (role, company, etc.)
  */
 export async function updateContactProperties(
 	email: string,
 	properties: Record<string, string>,
 ): Promise<{ success: boolean; error: Error | null }> {
-	if (!RESEND_AUDIENCE_ID) {
-		console.warn(
-			"[Resend] RESEND_AUDIENCE_ID not configured, skipping property update",
-		);
-		return { success: false, error: null };
-	}
-
 	const resend = getResend();
 
 	try {
 		const { error } = await resend.contacts.update({
-			audienceId: RESEND_AUDIENCE_ID,
 			email,
 			properties,
 		});
@@ -287,15 +253,10 @@ export async function addContactToSegment(
 	email: string,
 	segmentId: string,
 ): Promise<{ success: boolean; error: Error | null }> {
-	if (!RESEND_AUDIENCE_ID) {
-		return { success: false, error: null };
-	}
-
 	const resend = getResend();
 
 	try {
 		const { error } = await resend.contacts.update({
-			audienceId: RESEND_AUDIENCE_ID,
 			email,
 			segments: [{ id: segmentId }],
 		});
